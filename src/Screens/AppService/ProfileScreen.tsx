@@ -1,0 +1,258 @@
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ImageBackground,
+  Image,
+  TouchableOpacity,
+  SafeAreaView,
+  StatusBar,
+  ScrollView,
+} from "react-native";
+
+import {
+  responsiveHeight,
+  responsiveWidth,
+  responsiveFontSize,
+} from "react-native-responsive-dimensions";
+
+import { moderateScale } from "react-native-size-matters";
+import { Feather } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+
+type RootStackParamList = {
+  ProfileSettings: undefined;
+  SecuritySettings: undefined;
+  GeneralSettings: undefined;
+  MayaAI: undefined;
+  LoginScreen: undefined;
+};
+
+const ProfileScreen: React.FC = () => {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#F4F5F7" }}>
+      <StatusBar barStyle="light-content" />
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: responsiveHeight(4) }}
+      >
+        <View style={{ height: responsiveHeight(35) }}>
+          <ImageBackground
+            source={require("../../../assets/mainbg.png")}
+            style={{ flex: 1 }}
+            resizeMode="cover"
+          >
+            <View style={styles.headerContent}>
+              <Text style={styles.headerTitle}>My Profile</Text>
+
+              <Image
+                source={require("../../../assets/profileimg.png")}
+                style={styles.profileImage}
+              />
+
+              <Text style={styles.name}>Alex Johnson</Text>
+              <Text style={styles.email}>alex.johnson@email.com</Text>
+            </View>
+          </ImageBackground>
+        </View>
+
+        <View style={styles.inviteCard}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.inviteTitle}>Invite Friends</Text>
+            <Text style={styles.inviteSub}>
+              Invite your friends to managing their finances sorted and get $50
+              each.
+            </Text>
+          </View>
+
+          <Image
+            source={require("../../../assets/invite.png")}
+            style={styles.inviteImage}
+          />
+        </View>
+
+        <View style={styles.menuContainer}>
+          {menuItem("Profile", require("../../../assets/user.png"), () =>
+            navigation.navigate("ProfileSettings"),
+          )}
+
+          {menuItem(
+            "Security Settings",
+            require("../../../assets/security.png"),
+            () => navigation.navigate("SecuritySettings"),
+          )}
+
+          {menuItem(
+            "General Settings",
+            require("../../../assets/general.png"),
+            () => navigation.navigate("GeneralSettings"),
+          )}
+
+          {menuItem("Ask MAYA", require("../../../assets/maya.png"), () =>
+            navigation.navigate("MayaAI"),
+          )}
+          <TouchableOpacity
+            style={styles.logoutRow}
+            // onPress={() => navigation.navigate("LoginScreen")}
+          >
+            <Text style={styles.logoutText}>Log Out</Text>
+
+            <Image
+              source={require("../../../assets/logout.png")}
+              style={styles.logoutImage}
+            />
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
+
+export default ProfileScreen;
+
+const menuItem = (title: string, icon: any, onPress: () => void) => {
+  return (
+    <TouchableOpacity style={styles.menuRow} onPress={onPress}>
+      <View style={styles.leftSection}>
+        <View style={styles.iconCircle}>
+          <Image source={icon} style={styles.menuIcon} />
+        </View>
+
+        <Text style={styles.menuText}>{title}</Text>
+      </View>
+
+      <Feather name="chevron-right" size={moderateScale(18)} color="#000000" />
+    </TouchableOpacity>
+  );
+};
+
+const styles = StyleSheet.create({
+  headerContent: {
+    flex: 1,
+    alignItems: "center",
+    paddingTop: responsiveHeight(2),
+  },
+
+  headerTitle: {
+    color: "#FFFFFF",
+    fontSize: responsiveFontSize(2.2),
+    fontFamily: "Manrope-SemiBold",
+    marginBottom: responsiveHeight(2),
+  },
+
+  profileImage: {
+    width: responsiveWidth(25),
+    height: responsiveWidth(25),
+    borderRadius: responsiveWidth(20),
+    marginBottom: responsiveHeight(1.5),
+  },
+
+  name: {
+    color: "#FFFFFF",
+    fontSize: responsiveFontSize(2.4),
+    fontFamily: "Manrope-Bold",
+  },
+
+  email: {
+    color: "#D6D6D6",
+    fontSize: responsiveFontSize(1.7),
+    marginTop: responsiveHeight(0.5),
+  },
+
+  inviteCard: {
+    flexDirection: "row",
+    backgroundColor: "#253B6E",
+    marginHorizontal: responsiveWidth(5),
+    marginTop: responsiveHeight(2),
+    borderRadius: moderateScale(5),
+    padding: responsiveWidth(4),
+    alignItems: "center",
+  },
+
+  inviteTitle: {
+    color: "#FFFFFF",
+    fontSize: responsiveFontSize(2),
+    fontFamily: "Manrope-SemiBold",
+    marginBottom: responsiveHeight(0.5),
+  },
+
+  inviteSub: {
+    color: "#DADADA",
+    fontSize: responsiveFontSize(1.5),
+  },
+
+  inviteImage: {
+    width: responsiveWidth(18),
+    height: responsiveWidth(18),
+    resizeMode: "contain",
+    marginLeft: responsiveWidth(3),
+  },
+
+  menuContainer: {
+    marginTop: responsiveHeight(2),
+    paddingHorizontal: responsiveWidth(5),
+    gap: responsiveHeight(1.5),
+    marginBottom: responsiveHeight(10),
+  },
+
+  menuRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#98939309",
+    paddingVertical: responsiveWidth(3.5),
+    paddingHorizontal: responsiveWidth(4),
+    borderRadius: moderateScale(8),
+  },
+
+  leftSection: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  iconCircle: {
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: responsiveWidth(3),
+  },
+
+  menuIcon: {
+    width: responsiveWidth(9),
+    height: responsiveWidth(9),
+    resizeMode: "contain",
+  },
+
+  menuText: {
+    fontSize: responsiveFontSize(1.9),
+    fontFamily: "Manrope-SemiBold",
+    color: "#1F2A50",
+  },
+
+  logoutRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#98939309",
+    paddingVertical: responsiveWidth(4),
+    paddingHorizontal: responsiveWidth(4),
+    borderRadius: moderateScale(8),
+  },
+
+  logoutText: {
+    color: "#FB002E",
+    fontSize: responsiveFontSize(2),
+    fontFamily: "Manrope-SemiBold",
+  },
+
+  logoutImage: {
+    width: responsiveWidth(6),
+    height: responsiveWidth(6),
+    resizeMode: "contain",
+  },
+});

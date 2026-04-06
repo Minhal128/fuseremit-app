@@ -1,0 +1,17 @@
+import React from "react";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import HomeScreen from "../../Screens/AppService/HomeSceren";
+import MayaAIScreen from "../../Screens/AppService/Home/MayaAIScreen";
+
+const Stack = createNativeStackNavigator();
+
+const HomeStack = () => {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="MainHome" component={HomeScreen} />
+      <Stack.Screen name="MayaAI" component={MayaAIScreen} />
+    </Stack.Navigator>
+  );
+};
+
+export default HomeStack;
