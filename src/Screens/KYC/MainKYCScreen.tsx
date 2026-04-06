@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
+  ActivityIndicator,
 } from "react-native";
 import {
   responsiveHeight,
@@ -14,11 +15,87 @@ import {
 } from "react-native-responsive-dimensions";
 import { moderateScale } from "react-native-size-matters";
 import { Ionicons, Feather, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { getAccessTokenAsync } from "../../services/session";
+import { fetchCurrentUserStatus } from "../../services/userApi";
+import { getManualKycDraft } from "../../services/manualKycDraft";
+
+interface KycCompletionState {
+  personalInfoDone: boolean;
+  documentDone: boolean;
+  livenessDone: boolean;
+}
 
 const MainKYCScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [completion, setCompletion] = useState<KycCompletionState>({
+    personalInfoDone: false,
+    documentDone: false,
+    livenessDone: false,
+  });
+
+  const loadKycState = useCallback(async () => {
+    try {
+      setErrorMessage("");
+      setIsLoading(true);
+
+      const [accessToken, draft] = await Promise.all([
+        getAccessTokenAsync(),
+        getManualKycDraft(),
+      ]);
+
+      let personalInfoDone = Boolean(
+        draft.personalInfo?.firstName &&
+          draft.personalInfo?.lastName &&
+          draft.personalInfo?.email &&
+          draft.personalInfo?.dateOfBirth &&
+          draft.personalInfo?.gender,
+      );
+
+      if (accessToken) {
+        const me = await fetchCurrentUserStatus(accessToken);
+        personalInfoDone = Boolean(
+          me.firstName &&
+            me.lastName &&
+            me.email &&
+            me.dateOfBirth &&
+            me.gender,
+        );
+      }
+
+      setCompletion({
+        personalInfoDone,
+        documentDone: Boolean(draft.documentImageBase64),
+        livenessDone: Boolean(draft.livenessImageBase64),
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Unable to load KYC progress.";
+
+      setErrorMessage(message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      void loadKycState();
+    }, [loadKycState]),
+  );
+
+  const canVerify = useMemo(
+    () =>
+      completion.personalInfoDone &&
+      completion.documentDone &&
+      completion.livenessDone,
+    [completion],
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -45,6 +122,15 @@ const MainKYCScreen: React.FC = () => {
         identity verification by providing the following:
       </Text>
 
+      {isLoading ? (
+        <View style={styles.loadingWrap}>
+          <ActivityIndicator color="#0B3963" />
+          <Text style={styles.loadingText}>Refreshing KYC checklist...</Text>
+        </View>
+      ) : null}
+
+      {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+
       <TouchableOpacity
         style={styles.card}
         onPress={() => navigation.navigate("PersonalInformation")}
@@ -54,11 +140,19 @@ const MainKYCScreen: React.FC = () => {
         </Text>
 
         <View style={styles.iconRow}>
-          <MaterialCommunityIcons
-            name="playlist-check"
-            size={26}
-            color="#fff"
-          />
+          {completion.personalInfoDone ? (
+            <Ionicons
+              name="checkmark-circle"
+              size={moderateScale(24)}
+              color="#19D36B"
+            />
+          ) : (
+            <MaterialCommunityIcons
+              name="playlist-check"
+              size={26}
+              color="#fff"
+            />
+          )}
         </View>
       </TouchableOpacity>
 
@@ -70,28 +164,52 @@ const MainKYCScreen: React.FC = () => {
           A picture of your passport or ID card
         </Text>
 
-        <Ionicons
-          name="phone-portrait-outline"
-          size={moderateScale(22)}
-          color="#fff"
-        />
+        {completion.documentDone ? (
+          <Ionicons
+            name="checkmark-circle"
+            size={moderateScale(24)}
+            color="#19D36B"
+          />
+        ) : (
+          <Ionicons
+            name="phone-portrait-outline"
+            size={moderateScale(22)}
+            color="#fff"
+          />
+        )}
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('LivenessVerify')}>
+      <TouchableOpacity
+        style={styles.card}
+        onPress={() => navigation.navigate("LivenessVerify")}
+      >
         <Text style={styles.cardText}>Liveness check</Text>
 
-        <MaterialCommunityIcons
-          name="emoticon-happy-outline"
-          size={moderateScale(22)}
-          color="#fff"
-        />
+        {completion.livenessDone ? (
+          <Ionicons
+            name="checkmark-circle"
+            size={moderateScale(24)}
+            color="#19D36B"
+          />
+        ) : (
+          <MaterialCommunityIcons
+            name="emoticon-happy-outline"
+            size={moderateScale(22)}
+            color="#fff"
+          />
+        )}
       </TouchableOpacity>
 
       <View style={{ flex: 1 }} />
 
+      {!canVerify ? (
+        <Text style={styles.lockHint}>Complete all three KYC items to continue.</Text>
+      ) : null}
+
       <TouchableOpacity
-        style={styles.verifyButton}
-        onPress={() => navigation.navigate("AppServiceBottomNavigation")}
+        style={[styles.verifyButton, !canVerify && styles.verifyButtonDisabled]}
+        onPress={() => navigation.navigate("VerificationProgress")}
+        disabled={!canVerify}
       >
         <Text style={styles.verifyText}>Verify</Text>
       </TouchableOpacity>
@@ -130,6 +248,26 @@ const styles = StyleSheet.create({
     marginBottom: responsiveHeight(6),
   },
 
+  loadingWrap: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: responsiveHeight(1),
+  },
+
+  loadingText: {
+    marginLeft: responsiveWidth(2),
+    color: "#0B3963",
+    fontFamily: "Manrope-SemiBold",
+    fontSize: responsiveFontSize(1.4),
+  },
+
+  errorText: {
+    color: "#FB002E",
+    fontFamily: "Manrope-SemiBold",
+    fontSize: responsiveFontSize(1.35),
+    marginBottom: responsiveHeight(0.8),
+  },
+
   card: {
     marginTop: responsiveHeight(2),
     backgroundColor: "#0B3963",
@@ -160,6 +298,18 @@ const styles = StyleSheet.create({
     paddingVertical: responsiveHeight(2),
     alignItems: "center",
     marginBottom: responsiveHeight(8),
+  },
+
+  verifyButtonDisabled: {
+    backgroundColor: "#A7B6C8",
+  },
+
+  lockHint: {
+    color: "#5B6470",
+    fontSize: responsiveFontSize(1.45),
+    fontFamily: "Manrope-SemiBold",
+    textAlign: "center",
+    marginBottom: responsiveHeight(1.2),
   },
 
   verifyText: {

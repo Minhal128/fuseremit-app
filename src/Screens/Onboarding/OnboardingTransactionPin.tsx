@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useState } from "react";
 import {
   View,
   Text,
+  Pressable,
   TouchableOpacity,
   StyleSheet,
   Image,
   SafeAreaView,
   StatusBar,
+  ActivityIndicator,
 } from "react-native";
 
 import {
@@ -16,7 +18,10 @@ import {
 } from "react-native-responsive-dimensions";
 import { moderateScale } from "react-native-size-matters";
 import { Feather, Ionicons } from "@expo/vector-icons";
+import * as LocalAuthentication from "expo-local-authentication";
 import TransactionPinSuccessModal from "../Onboarding/TransactionPinSuccessModal";
+import { getAccessTokenAsync } from "../../services/session";
+import { createTransactionPin } from "../../services/userApi";
 
 interface Props {
   navigation: any;
@@ -25,25 +30,83 @@ interface Props {
 const OnboardingTransactionPin = ({ navigation }: Props) => {
   const [pin, setPin] = useState<string>("");
   const [modalVisible, setModalVisible] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [helperMessage, setHelperMessage] = useState<string>("");
+
+  const submitPin = useCallback(async (pinValue: string) => {
+    const accessToken = await getAccessTokenAsync();
+
+    if (!accessToken) {
+      navigation.navigate("Login");
+      return;
+    }
+
+    try {
+      setErrorMessage("");
+      setIsSubmitting(true);
+
+      await createTransactionPin(accessToken, pinValue);
+      setModalVisible(true);
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unable to create transaction PIN.";
+
+      setErrorMessage(message);
+      setPin("");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, []);
 
   const handlePress = (num: string) => {
-    if (pin.length < 4) {
-      setPin(pin + num);
-    }
+    if (isSubmitting) return;
+
+    setHelperMessage("");
+
+    setPin((prev) => {
+      if (prev.length >= 4) {
+        return prev;
+      }
+
+      const next = `${prev}${num}`;
+
+      if (next.length === 4) {
+        void submitPin(next);
+      }
+
+      return next;
+    });
   };
 
   const handleDelete = () => {
-    setPin(pin.slice(0, -1));
+    if (isSubmitting) return;
+    setHelperMessage("");
+    setPin((prev) => prev.slice(0, -1));
   };
 
-  useEffect(() => {
-    if (pin.length === 4) {
-      const timer = setTimeout(() => {
-        setModalVisible(true);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [pin]);
+  const handleBiometricPress = () => {
+    void (async () => {
+      setErrorMessage("");
+
+      const hasHardware = await LocalAuthentication.hasHardwareAsync();
+      const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+
+      if (!hasHardware || !isEnrolled) {
+        setHelperMessage("No fingerprint enrolled on this device.");
+        return;
+      }
+
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: "Verify your fingerprint",
+        fallbackLabel: "Use PIN",
+      });
+
+      if (result.success) {
+        setHelperMessage("Fingerprint verified. Continue entering your PIN.");
+      }
+    })();
+  };
 
   const renderDot = (index: number) => {
     const filled = index < pin.length;
@@ -62,13 +125,12 @@ const OnboardingTransactionPin = ({ navigation }: Props) => {
   };
 
   const NumberButton = ({ value }: { value: string }) => (
-    <TouchableOpacity
-      style={styles.key}
-      activeOpacity={0.7}
-      onPress={() => handlePress(value)}
+    <Pressable
+      style={({ pressed }) => [styles.key, pressed && styles.keyPressed]}
+      onPressIn={() => handlePress(value)}
     >
       <Text style={styles.keyText}>{value}</Text>
-    </TouchableOpacity>
+    </Pressable>
   );
 
   return (
@@ -98,6 +160,13 @@ const OnboardingTransactionPin = ({ navigation }: Props) => {
       <View style={styles.dotsContainer}>{[0, 1, 2, 3].map(renderDot)}</View>
 
       <View style={styles.keypadContainer}>
+        {isSubmitting ? (
+          <View style={styles.submittingState}>
+            <ActivityIndicator color="#0B3963" />
+            <Text style={styles.submittingText}>Saving your transaction PIN...</Text>
+          </View>
+        ) : null}
+
         <View style={styles.row}>
           <NumberButton value="1" />
           <NumberButton value="2" />
@@ -117,25 +186,36 @@ const OnboardingTransactionPin = ({ navigation }: Props) => {
         </View>
 
         <View style={styles.row}>
-          <TouchableOpacity style={styles.key} activeOpacity={0.7}>
-            <Image
-              source={require("../../../assets/face.png")}
-              style={{ width: moderateScale(26), height: moderateScale(26) }}
-              resizeMode="contain"
+          <Pressable
+            style={({ pressed }) => [styles.key, pressed && styles.keyPressed]}
+            onPress={handleBiometricPress}
+          >
+            <Ionicons
+              name="finger-print-outline"
+              size={moderateScale(28)}
+              color="#000"
             />
-          </TouchableOpacity>
+          </Pressable>
 
           <NumberButton value="0" />
 
-          <TouchableOpacity style={styles.key} onPress={handleDelete}>
+          <Pressable
+            style={({ pressed }) => [styles.key, pressed && styles.keyPressed]}
+            onPressIn={handleDelete}
+          >
             <Ionicons
               name="backspace-outline"
               size={moderateScale(26)}
               color="#000"
             />
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </View>
+
+      {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+      {!errorMessage && helperMessage ? (
+        <Text style={styles.helperText}>{helperMessage}</Text>
+      ) : null}
 
       <View style={styles.footer}>
         <Text style={styles.forgot}>Forgot your PIN?</Text>
@@ -207,6 +287,35 @@ const styles = StyleSheet.create({
     marginTop: responsiveHeight(7),
   },
 
+  submittingState: {
+    alignItems: "center",
+    marginBottom: responsiveHeight(2),
+  },
+
+  submittingText: {
+    marginTop: responsiveHeight(1),
+    color: "#0B3963",
+    fontFamily: "Manrope-SemiBold",
+    fontSize: responsiveFontSize(1.5),
+  },
+
+  errorText: {
+    marginTop: responsiveHeight(1),
+    textAlign: "center",
+    color: "#FB002E",
+    fontFamily: "Manrope-SemiBold",
+    fontSize: responsiveFontSize(1.4),
+  },
+
+  helperText: {
+    marginTop: responsiveHeight(1),
+    textAlign: "center",
+    color: "#0B3963",
+    fontFamily: "Manrope-SemiBold",
+    fontSize: responsiveFontSize(1.35),
+    paddingHorizontal: responsiveWidth(8),
+  },
+
   row: {
     flexDirection: "row",
     justifyContent: "space-evenly",
@@ -218,6 +327,11 @@ const styles = StyleSheet.create({
     height: responsiveWidth(10),
     justifyContent: "center",
     alignItems: "center",
+  },
+
+  keyPressed: {
+    transform: [{ scale: 0.96 }],
+    opacity: 0.7,
   },
 
   keyText: {

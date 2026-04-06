@@ -8,6 +8,8 @@ import {
   Animated,
 } from "react-native";
 import Svg, { Circle } from "react-native-svg";
+import * as Animatable from "react-native-animatable";
+import { Ionicons } from "@expo/vector-icons";
 import {
   responsiveHeight,
   responsiveWidth,
@@ -15,11 +17,15 @@ import {
 } from "react-native-responsive-dimensions";
 import { moderateScale } from "react-native-size-matters";
 import { useNavigation } from "@react-navigation/native";
+import { getAccessTokenAsync } from "../../services/session";
+import { updateAccountTier, updateKycStatus } from "../../services/userApi";
 
 const VerificationProgressScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const progress = useRef(new Animated.Value(0)).current;
   const [completed, setCompleted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const size = responsiveWidth(50);
   const strokeWidth = moderateScale(14);
@@ -41,16 +47,49 @@ const VerificationProgressScreen: React.FC = () => {
     outputRange: [circumference, 0],
   });
 
+  const handleGoToDashboard = () => {
+    void (async () => {
+      if (isSubmitting) return;
+
+      try {
+        setErrorMessage("");
+        setIsSubmitting(true);
+
+        const accessToken = await getAccessTokenAsync();
+
+        if (accessToken) {
+          await updateKycStatus(accessToken, "verified");
+          await updateAccountTier(accessToken, "Premium");
+        }
+
+        navigation.navigate("AppServiceBottomNavigation");
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Unable to sync premium upgrade status.";
+
+        setErrorMessage(message);
+      } finally {
+        setIsSubmitting(false);
+      }
+    })();
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Verify it’s you</Text>
       </View>
 
-      <View style={styles.loaderWrapper}>
+      <Animatable.View
+        style={styles.loaderWrapper}
+        animation="zoomIn"
+        duration={550}
+      >
         <Svg width={size} height={size}>
           <Circle
-            stroke="#E2E6EC"
+            stroke="#DDF6E7"
             fill="none"
             cx={size / 2}
             cy={size / 2}
@@ -59,7 +98,7 @@ const VerificationProgressScreen: React.FC = () => {
           />
 
           <AnimatedCircle
-            stroke="#000"
+            stroke="#16A34A"
             fill="none"
             cx={size / 2}
             cy={size / 2}
@@ -73,21 +112,41 @@ const VerificationProgressScreen: React.FC = () => {
             originY={size / 2}
           />
         </Svg>
-      </View>
+
+        <Animatable.View
+          style={styles.checkCenterWrap}
+          animation="pulse"
+          iterationCount="infinite"
+          duration={1800}
+        >
+          <View style={styles.checkCenter}>
+            <Ionicons name="checkmark" size={moderateScale(42)} color="#fff" />
+          </View>
+        </Animatable.View>
+      </Animatable.View>
 
       <View style={styles.textContainer}>
         <Text style={styles.title}>
-          {completed ? "Verification Complete" : "Verification in Progress"}
+          {completed ? "Verification Successful" : "Verification in Progress"}
         </Text>
 
         <Text style={styles.subtitle}>
-          Your identity is being verified. You’ll have full access to all
-          FuseRemit features as soon as the process is complete.
+          {completed
+            ? "Your KYC details have been captured successfully. Final review is now in progress."
+            : "We are securely validating your identity details. This will only take a moment."}
         </Text>
       </View>
 
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('AppServiceBottomNavigation')}>
-        <Text style={styles.buttonText}>Go to Dashboard</Text>
+      {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+
+      <TouchableOpacity
+        style={[styles.button, isSubmitting && styles.buttonDisabled]}
+        onPress={handleGoToDashboard}
+        disabled={isSubmitting}
+      >
+        <Text style={styles.buttonText}>
+          {isSubmitting ? "Syncing..." : "Go to Dashboard"}
+        </Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
@@ -100,7 +159,7 @@ export default VerificationProgressScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5F6F8",
+    backgroundColor: "#F4FBF7",
     alignItems: "center",
   },
 
@@ -120,6 +179,27 @@ const styles = StyleSheet.create({
     marginTop: responsiveHeight(8),
     justifyContent: "center",
     alignItems: "center",
+    position: "relative",
+  },
+
+  checkCenterWrap: {
+    position: "absolute",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  checkCenter: {
+    width: responsiveWidth(22),
+    height: responsiveWidth(22),
+    borderRadius: responsiveWidth(14),
+    backgroundColor: "#16A34A",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#16A34A",
+    shadowOpacity: 0.32,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 6,
   },
 
   textContainer: {
@@ -131,14 +211,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: responsiveFontSize(2.4),
     fontWeight: "600",
-    color: "#000",
+    color: "#0F5132",
     marginBottom: responsiveHeight(1.5),
     textAlign: "center",
   },
 
   subtitle: {
     fontSize: responsiveFontSize(1.8),
-    color: "#555",
+    color: "#2F4F3E",
     textAlign: "center",
     lineHeight: moderateScale(22),
   },
@@ -148,10 +228,23 @@ const styles = StyleSheet.create({
     bottom: responsiveHeight(4),
     width: responsiveWidth(85),
     height: responsiveHeight(7),
-    backgroundColor: "#123B67",
+    backgroundColor: "#0B3963",
     borderRadius: moderateScale(12),
     justifyContent: "center",
     alignItems: "center",
+  },
+
+  buttonDisabled: {
+    opacity: 0.7,
+  },
+
+  errorText: {
+    marginTop: responsiveHeight(2.5),
+    color: "#FB002E",
+    fontSize: responsiveFontSize(1.5),
+    fontWeight: "600",
+    textAlign: "center",
+    width: responsiveWidth(85),
   },
 
   buttonText: {

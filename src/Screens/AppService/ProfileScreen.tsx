@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   SafeAreaView,
   StatusBar,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 
 import {
@@ -19,20 +20,125 @@ import {
 
 import { moderateScale } from "react-native-size-matters";
 import { Feather } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import {
+  CommonActions,
+  useFocusEffect,
+  useNavigation,
+} from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { logoutAccount } from "../../services/authApi";
+import { clearManualKycDraft } from "../../services/manualKycDraft";
+import {
+  clearSession,
+  getAccessTokenAsync,
+  getSessionUser,
+} from "../../services/session";
+import { fetchCurrentUserStatus } from "../../services/userApi";
 
-type RootStackParamList = {
-  ProfileSettings: undefined;
-  SecuritySettings: undefined;
-  GeneralSettings: undefined;
-  MayaAI: undefined;
-  LoginScreen: undefined;
-};
+interface ProfileIdentity {
+  firstName: string;
+  lastName: string;
+  email: string;
+}
 
 const ProfileScreen: React.FC = () => {
-  const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
+
+  const sessionUser = getSessionUser();
+  const [identity, setIdentity] = useState<ProfileIdentity>({
+    firstName: sessionUser?.firstName ?? "FuseRemit",
+    lastName: sessionUser?.lastName ?? "User",
+    email: sessionUser?.email ?? "",
+  });
+  const [isLoadingIdentity, setIsLoadingIdentity] = useState(true);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const resetToLogin = useCallback(() => {
+    const rootNavigator = navigation.getParent()?.getParent();
+
+    if (rootNavigator) {
+      rootNavigator.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: "Login" }],
+        }),
+      );
+      return;
+    }
+
+    navigation.navigate("Login");
+  }, [navigation]);
+
+  const loadProfileIdentity = useCallback(async () => {
+    try {
+      setErrorMessage("");
+      setIsLoadingIdentity(true);
+
+      const accessToken = await getAccessTokenAsync();
+
+      if (!accessToken) {
+        await clearSession();
+        resetToLogin();
+        return;
+      }
+
+      const me = await fetchCurrentUserStatus(accessToken);
+
+      setIdentity({
+        firstName: me.firstName?.trim() || "FuseRemit",
+        lastName: me.lastName?.trim() || "User",
+        email: me.email,
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Unable to load profile details.";
+
+      const normalized = message.toLowerCase();
+      if (normalized.includes("token") || normalized.includes("auth")) {
+        await Promise.all([clearSession(), clearManualKycDraft()]);
+        resetToLogin();
+        return;
+      }
+
+      setErrorMessage(message);
+    } finally {
+      setIsLoadingIdentity(false);
+    }
+  }, [resetToLogin]);
+
+  useFocusEffect(
+    useCallback(() => {
+      void loadProfileIdentity();
+    }, [loadProfileIdentity]),
+  );
+
+  const handleLogout = useCallback(() => {
+    void (async () => {
+      if (isLoggingOut) return;
+
+      try {
+        setErrorMessage("");
+        setIsLoggingOut(true);
+
+        const accessToken = await getAccessTokenAsync();
+        await logoutAccount(accessToken ?? undefined);
+      } catch {
+        // Logout should still proceed locally even if network logout fails.
+      } finally {
+        await Promise.all([clearSession(), clearManualKycDraft()]);
+        setIsLoggingOut(false);
+        resetToLogin();
+      }
+    })();
+  }, [isLoggingOut, resetToLogin]);
+
+  const fullName = useMemo(
+    () => `${identity.firstName} ${identity.lastName}`.trim(),
+    [identity.firstName, identity.lastName],
+  );
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#F4F5F7" }}>
@@ -56,8 +162,21 @@ const ProfileScreen: React.FC = () => {
                 style={styles.profileImage}
               />
 
-              <Text style={styles.name}>Alex Johnson</Text>
-              <Text style={styles.email}>alex.johnson@email.com</Text>
+              {isLoadingIdentity ? (
+                <View style={styles.loadingWrap}>
+                  <ActivityIndicator color="#fff" />
+                  <Text style={styles.loadingText}>Syncing profile...</Text>
+                </View>
+              ) : (
+                <>
+                  <Text style={styles.name}>{fullName}</Text>
+                  <Text style={styles.email}>{identity.email}</Text>
+                </>
+              )}
+
+              {errorMessage ? (
+                <Text style={styles.errorText}>{errorMessage}</Text>
+              ) : null}
             </View>
           </ImageBackground>
         </View>
@@ -97,11 +216,15 @@ const ProfileScreen: React.FC = () => {
           {menuItem("Ask MAYA", require("../../../assets/maya.png"), () =>
             navigation.navigate("MayaAI"),
           )}
+
           <TouchableOpacity
             style={styles.logoutRow}
-            // onPress={() => navigation.navigate("LoginScreen")}
+            onPress={handleLogout}
+            disabled={isLoggingOut}
           >
-            <Text style={styles.logoutText}>Log Out</Text>
+            <Text style={styles.logoutText}>
+              {isLoggingOut ? "Logging out..." : "Log Out"}
+            </Text>
 
             <Image
               source={require("../../../assets/logout.png")}
@@ -153,6 +276,18 @@ const styles = StyleSheet.create({
     marginBottom: responsiveHeight(1.5),
   },
 
+  loadingWrap: {
+    alignItems: "center",
+    marginBottom: responsiveHeight(0.8),
+  },
+
+  loadingText: {
+    marginTop: responsiveHeight(0.7),
+    color: "#E1E6EF",
+    fontSize: responsiveFontSize(1.4),
+    fontFamily: "Manrope-SemiBold",
+  },
+
   name: {
     color: "#FFFFFF",
     fontSize: responsiveFontSize(2.4),
@@ -163,6 +298,15 @@ const styles = StyleSheet.create({
     color: "#D6D6D6",
     fontSize: responsiveFontSize(1.7),
     marginTop: responsiveHeight(0.5),
+  },
+
+  errorText: {
+    marginTop: responsiveHeight(0.7),
+    color: "#FFD3D3",
+    fontSize: responsiveFontSize(1.2),
+    fontFamily: "Manrope-SemiBold",
+    textAlign: "center",
+    paddingHorizontal: responsiveWidth(10),
   },
 
   inviteCard: {

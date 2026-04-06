@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
+  Animated,
+  ActivityIndicator,
 } from "react-native";
 import {
   responsiveHeight,
@@ -14,25 +16,165 @@ import {
 } from "react-native-responsive-dimensions";
 import { moderateScale, scale } from "react-native-size-matters";
 import { Ionicons, Feather } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-
-type RootStackParamList = {
-  OnboardingTransactionPin: undefined;
-  OnboardingClassic: undefined;
-  OnboardingPremium: undefined;
-};
+import { RootStackParamList } from "../../types/navigation";
+import { getAccessTokenAsync } from "../../services/session";
+import { fetchCurrentUserStatus } from "../../services/userApi";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
+interface ChecklistState {
+  accountCreated: boolean;
+  pinCompleted: boolean;
+  classicCompleted: boolean;
+  premiumCompleted: boolean;
+}
+
+interface TaskItem {
+  title: string;
+  completed: boolean;
+  enabled: boolean;
+  onPress?: () => void;
+}
+
+const AnimatedTaskTick = ({ completed }: { completed: boolean }) => {
+  const progress = useRef(new Animated.Value(completed ? 1 : 0)).current;
+
+  React.useEffect(() => {
+    Animated.timing(progress, {
+      toValue: completed ? 1 : 0,
+      duration: 420,
+      useNativeDriver: false,
+    }).start();
+  }, [completed, progress]);
+
+  const backgroundColor = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["#F3F4F6", "#27AE60"],
+  });
+
+  const borderColor = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["#D1D5DB", "#27AE60"],
+  });
+
+  const scaleValue = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.9, 1],
+  });
+
+  return (
+    <Animated.View
+      style={[
+        styles.tickCircle,
+        {
+          backgroundColor,
+          borderColor,
+          transform: [{ scale: scaleValue }],
+        },
+      ]}
+    >
+      <Ionicons
+        name="checkmark"
+        size={moderateScale(14)}
+        color={completed ? "#fff" : "#8B8B8B"}
+      />
+    </Animated.View>
+  );
+};
+
 const MainOnbaordingScreen = () => {
   const navigation = useNavigation<NavigationProp>();
+
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [checklist, setChecklist] = useState<ChecklistState>({
+    accountCreated: true,
+    pinCompleted: false,
+    classicCompleted: false,
+    premiumCompleted: false,
+  });
+
+  const loadChecklist = useCallback(async () => {
+    const accessToken = await getAccessTokenAsync();
+
+    if (!accessToken) {
+      setChecklist((prev) => ({
+        ...prev,
+        accountCreated: true,
+      }));
+      setErrorMessage("Session not found. Please login again to sync progress.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setErrorMessage("");
+
+      const me = await fetchCurrentUserStatus(accessToken);
+      const isClassicCompleted = me.kycStatus !== "pending";
+      const isPremiumCompleted = me.kycStatus === "verified";
+
+      setChecklist({
+        accountCreated: Boolean(me.id),
+        pinCompleted: me.hasTransactionPin,
+        classicCompleted: isClassicCompleted,
+        premiumCompleted: isPremiumCompleted,
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Unable to sync onboarding progress.";
+
+      setErrorMessage(message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      void loadChecklist();
+    }, [loadChecklist]),
+  );
+
+  const tasks = useMemo<TaskItem[]>(
+    () => [
+      {
+        title: "Create An Account",
+        completed: checklist.accountCreated,
+        enabled: false,
+      },
+      {
+        title: "Create Your Transaction PIN",
+        completed: checklist.pinCompleted,
+        enabled: checklist.accountCreated,
+        onPress: () => navigation.navigate("OnboardingTransactionPin"),
+      },
+      {
+        title: "Upgrade to FuseRemit Classic",
+        completed: checklist.classicCompleted,
+        enabled: checklist.pinCompleted,
+        onPress: () => navigation.navigate("OnboardingClassic"),
+      },
+      {
+        title: "Upgrade to FuseRemit Premium",
+        completed: checklist.premiumCompleted,
+        enabled: checklist.classicCompleted,
+        onPress: () => navigation.navigate("OnboardingPremium"),
+      },
+    ],
+    [checklist, navigation],
+  );
+
+  const canGoHome = checklist.premiumCompleted;
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
 
-      {/* TopBar */}
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Feather name="chevron-left" size={moderateScale(22)} />
@@ -45,62 +187,56 @@ const MainOnbaordingScreen = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Description */}
       <View style={styles.descriptionContainer}>
         <Text style={styles.descriptionText}>
           Complete these tasks to fully utilize your FuseRemit account.
         </Text>
       </View>
 
-      {/* Task */}
+      {loading ? (
+        <View style={styles.loadingWrap}>
+          <ActivityIndicator color="#0B3963" />
+          <Text style={styles.loadingText}>Syncing your progress...</Text>
+        </View>
+      ) : null}
+
+      {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+
       <View style={styles.taskContainer}>
-        {renderTask("Create An Account", true)}
+        {tasks.map((task) => {
+          const isClickable = Boolean(task.onPress) && task.enabled;
 
-        {renderTask("Create Your Transaction PIN", false, () =>
-          navigation.navigate("OnboardingTransactionPin"),
-        )}
-
-        {renderTask("Upgrade to FuseRemit Classic", false, () =>
-          navigation.navigate("OnboardingClassic"),
-        )}
-
-        {renderTask("Upgrade to FuseRemit Premium", false, () =>
-          navigation.navigate("OnboardingPremium"),
-        )}
+          return (
+            <TouchableOpacity
+              key={task.title}
+              activeOpacity={isClickable ? 0.7 : 1}
+              onPress={task.onPress}
+              disabled={!isClickable}
+              style={styles.taskItem}
+            >
+              <AnimatedTaskTick completed={task.completed} />
+              <Text style={[styles.taskText, !isClickable && !task.completed && styles.taskTextDisabled]}>
+                {task.title}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
-      {/* Bottom Button */}
+      {!canGoHome ? (
+        <Text style={styles.lockedHint}>Complete all KYC steps to unlock Home.</Text>
+      ) : null}
+
       <View style={styles.bottomContainer}>
-        <TouchableOpacity style={styles.homeButton}>
+        <TouchableOpacity
+          style={[styles.homeButton, !canGoHome && styles.homeButtonDisabled]}
+          onPress={() => navigation.navigate("AppServiceBottomNavigation")}
+          disabled={!canGoHome}
+        >
           <Text style={styles.homeButtonText}>Go To Home</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
-  );
-};
-
-const renderTask = (
-  title: string,
-  completed: boolean,
-  onPress?: () => void,
-) => {
-  const isClickable = !!onPress;
-
-  return (
-    <TouchableOpacity
-      activeOpacity={isClickable ? 0.7 : 1}
-      onPress={onPress}
-      disabled={!isClickable}
-      style={styles.taskItem}
-    >
-      <Ionicons
-        name="checkmark"
-        size={moderateScale(20)}
-        color={completed ? "#27AE60" : "#0000008a"}
-        style={{ marginRight: responsiveWidth(3) }}
-      />
-      <Text style={styles.taskText}>{title}</Text>
-    </TouchableOpacity>
   );
 };
 
@@ -138,21 +274,64 @@ const styles = StyleSheet.create({
     fontFamily: "Manrope-SemiBold",
   },
 
+  loadingWrap: {
+    alignItems: "center",
+    marginTop: responsiveHeight(2),
+  },
+
+  loadingText: {
+    marginTop: responsiveHeight(0.8),
+    color: "#0B3963",
+    fontFamily: "Manrope-SemiBold",
+    fontSize: responsiveFontSize(1.4),
+  },
+
+  errorText: {
+    marginTop: responsiveHeight(1.4),
+    textAlign: "center",
+    color: "#FB002E",
+    fontFamily: "Manrope-SemiBold",
+    fontSize: responsiveFontSize(1.4),
+  },
+
   taskContainer: {
-    marginTop: responsiveHeight(10),
+    marginTop: responsiveHeight(6),
     paddingHorizontal: scale(10),
   },
 
   taskItem: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: responsiveHeight(6),
-    fontFamily: "Manrope-SemiBold",
+    marginBottom: responsiveHeight(4),
+  },
+
+  tickCircle: {
+    width: moderateScale(24),
+    height: moderateScale(24),
+    borderRadius: moderateScale(24),
+    borderWidth: 1.5,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: responsiveWidth(3),
   },
 
   taskText: {
     fontSize: responsiveFontSize(2),
     color: "#333",
+    fontFamily: "Manrope-SemiBold",
+  },
+
+  taskTextDisabled: {
+    color: "#9CA3AF",
+  },
+
+  lockedHint: {
+    textAlign: "center",
+    color: "#6B7280",
+    fontFamily: "Manrope-SemiBold",
+    fontSize: responsiveFontSize(1.45),
+    marginTop: responsiveHeight(0.5),
+    paddingHorizontal: responsiveWidth(8),
   },
 
   bottomContainer: {
@@ -170,6 +349,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderRadius: moderateScale(10),
+  },
+
+  homeButtonDisabled: {
+    backgroundColor: "#AEB8C2",
   },
 
   homeButtonText: {

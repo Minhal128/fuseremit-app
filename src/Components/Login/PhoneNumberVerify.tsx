@@ -23,6 +23,7 @@ import {
   resendEmailLoginOtp,
   verifyEmailLoginOtp,
 } from "../../services/authApi";
+import { setSession } from "../../services/session";
 
 interface Props {
   navigation: any;
@@ -123,6 +124,11 @@ const PhoneNumberVerify = ({ navigation, route }: Props) => {
         const data = await verifyEmailLoginOtp({
           challengeId,
           otp: otp.join(""),
+        });
+
+        await setSession({
+          accessToken: data.accessToken,
+          user: data.user,
         });
 
         if (data.requiresPinSetup) {

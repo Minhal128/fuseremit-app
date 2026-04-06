@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
+  ActivityIndicator,
 } from "react-native";
 import {
   responsiveHeight,
@@ -16,9 +17,99 @@ import { moderateScale } from "react-native-size-matters";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import * as Location from "expo-location";
+import {
+  ManualKycDocumentType,
+  getManualKycDraft,
+  updateManualKycDraft,
+} from "../../services/manualKycDraft";
+
+const documentOptions: Array<{ label: string; value: ManualKycDocumentType }> = [
+  { label: "Passport", value: "passport" },
+  { label: "ID card", value: "id_card" },
+  { label: "Driver’s license", value: "drivers_license" },
+];
 
 const DocumentTypeScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const [country, setCountry] = useState("Detecting country...");
+  const [isLocating, setIsLocating] = useState(true);
+  const [selectedType, setSelectedType] =
+    useState<ManualKycDocumentType | null>(null);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    const resolveCountryAndDraft = async () => {
+      try {
+        setIsLocating(true);
+        setErrorMessage("");
+
+        const draft = await getManualKycDraft();
+
+        if (draft.documentType) {
+          setSelectedType(draft.documentType);
+        }
+
+        if (draft.country) {
+          setCountry(draft.country);
+        }
+
+        const permission = await Location.requestForegroundPermissionsAsync();
+
+        if (permission.status !== "granted") {
+          if (!draft.country) {
+            setCountry("Country unavailable");
+          }
+
+          setErrorMessage("Location permission denied. Turn it on for auto country detection.");
+          return;
+        }
+
+        const position = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+
+        const reverse = await Location.reverseGeocodeAsync(position.coords);
+        const detectedCountry = reverse[0]?.country?.trim();
+
+        if (detectedCountry) {
+          setCountry(detectedCountry);
+          await updateManualKycDraft({ country: detectedCountry });
+        } else if (!draft.country) {
+          setCountry("Country unavailable");
+        }
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Unable to detect your country right now.";
+
+        setErrorMessage(message);
+      } finally {
+        setIsLocating(false);
+      }
+    };
+
+    void resolveCountryAndDraft();
+  }, []);
+
+  const canContinue = useMemo(() => Boolean(selectedType), [selectedType]);
+
+  const handleVerify = () => {
+    void (async () => {
+      if (!selectedType) {
+        setErrorMessage("Please select your document type.");
+        return;
+      }
+
+      await updateManualKycDraft({
+        documentType: selectedType,
+        country: country === "Detecting country..." ? undefined : country,
+      });
+
+      navigation.navigate("SelectDocument");
+    })();
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -40,25 +131,41 @@ const DocumentTypeScreen: React.FC = () => {
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.description}>Nigeria</Text>
+      <View style={styles.countryRow}>
+        {isLocating ? <ActivityIndicator size="small" color="#0B3963" /> : null}
+        <Text style={styles.description}>{country}</Text>
+      </View>
 
-      <TouchableOpacity style={styles.card}>
-        <Text style={styles.cardText}>Passport</Text>
-      </TouchableOpacity>
+      {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
 
-      <TouchableOpacity style={styles.card}>
-        <Text style={styles.cardText}>ID card</Text>
-      </TouchableOpacity>
+      {documentOptions.map((option) => {
+        const isSelected = selectedType === option.value;
 
-      <TouchableOpacity style={styles.card}>
-        <Text style={styles.cardText}>Driver’s license</Text>
-      </TouchableOpacity>
+        return (
+          <TouchableOpacity
+            key={option.value}
+            style={[styles.card, isSelected && styles.cardSelected]}
+            onPress={() => setSelectedType(option.value)}
+          >
+            <Text style={styles.cardText}>{option.label}</Text>
+
+            {isSelected ? (
+              <Ionicons
+                name="checkmark-circle"
+                size={moderateScale(22)}
+                color="#1BD96A"
+              />
+            ) : null}
+          </TouchableOpacity>
+        );
+      })}
 
       <View style={{ flex: 1 }} />
 
       <TouchableOpacity
-        style={styles.verifyButton}
-        onPress={() => navigation.navigate("SelectDocument")}
+        style={[styles.verifyButton, !canContinue && styles.verifyButtonDisabled]}
+        onPress={handleVerify}
+        disabled={!canContinue}
       >
         <Text style={styles.verifyText}>Verify</Text>
       </TouchableOpacity>
@@ -89,12 +196,27 @@ const styles = StyleSheet.create({
   },
 
   description: {
-    marginTop: responsiveHeight(5),
+    marginTop: 0,
     fontSize: responsiveFontSize(1.8),
     color: "#1E1E1E",
     lineHeight: moderateScale(22),
     fontFamily: "Manrope-Medium",
-    marginBottom: responsiveHeight(2),
+    marginBottom: 0,
+    marginLeft: responsiveWidth(2),
+  },
+
+  countryRow: {
+    marginTop: responsiveHeight(4),
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: responsiveHeight(1.2),
+  },
+
+  errorText: {
+    color: "#FB002E",
+    fontFamily: "Manrope-SemiBold",
+    fontSize: responsiveFontSize(1.35),
+    marginBottom: responsiveHeight(1),
   },
 
   card: {
@@ -102,15 +224,23 @@ const styles = StyleSheet.create({
     backgroundColor: "#0B3963",
     borderRadius: moderateScale(8),
     paddingVertical: responsiveHeight(2),
-    justifyContent: "center",
+    paddingHorizontal: responsiveWidth(4),
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
+  },
+
+  cardSelected: {
+    borderWidth: 1.5,
+    borderColor: "#1BD96A",
   },
 
   cardText: {
     color: "#fff",
     fontSize: responsiveFontSize(1.9),
     fontFamily: "Manrope-SemiBold",
-    textAlign: "center",
+    textAlign: "left",
+    flex: 1,
   },
 
   verifyButton: {
@@ -119,6 +249,10 @@ const styles = StyleSheet.create({
     paddingVertical: responsiveHeight(2),
     alignItems: "center",
     marginBottom: responsiveHeight(8),
+  },
+
+  verifyButtonDisabled: {
+    backgroundColor: "#A7B6C8",
   },
 
   verifyText: {

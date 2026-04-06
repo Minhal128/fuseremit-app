@@ -9,18 +9,50 @@ import { moderateScale } from "react-native-size-matters";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../types/navigation";
+import { getAccessTokenAsync, hydrateSession } from "../services/session";
 
 const WelcomeScreen = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      navigation.replace("Login");
-    }, 3000);
+    let isMounted = true;
+    let timer: ReturnType<typeof setTimeout> | null = null;
 
-    return () => clearTimeout(timer);
-  }, []);
+    const bootstrapSession = async () => {
+      try {
+        await hydrateSession();
+        const accessToken = await getAccessTokenAsync();
+
+        if (!isMounted) return;
+
+        timer = setTimeout(() => {
+          if (!isMounted) return;
+
+          navigation.replace(
+            accessToken ? "AppServiceBottomNavigation" : "Login",
+          );
+        }, 1200);
+      } catch {
+        if (!isMounted) return;
+
+        timer = setTimeout(() => {
+          if (!isMounted) return;
+          navigation.replace("Login");
+        }, 1200);
+      }
+    };
+
+    void bootstrapSession();
+
+    return () => {
+      isMounted = false;
+
+      if (timer) {
+        clearTimeout(timer);
+      }
+    };
+  }, [navigation]);
 
   return (
     <View style={styles.container}>

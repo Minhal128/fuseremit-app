@@ -22,6 +22,10 @@ import {
 import { moderateScale } from "react-native-size-matters";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useNavigation } from "@react-navigation/native";
+import {
+  getManualKycDraft,
+  updateManualKycDraft,
+} from "../../services/manualKycDraft";
 
 const SelectDocumentScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -33,24 +37,61 @@ const SelectDocumentScreen: React.FC = () => {
   const [cameraError, setCameraError] = useState<string | null>(null);
 
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [documentLabel, setDocumentLabel] = useState("ID card");
 
   useEffect(() => {
     if (!permission?.granted) {
       requestPermission();
     }
+
+    void (async () => {
+      const draft = await getManualKycDraft();
+
+      if (draft.documentType === "passport") {
+        setDocumentLabel("Passport");
+      } else if (draft.documentType === "drivers_license") {
+        setDocumentLabel("Driver’s license");
+      } else {
+        setDocumentLabel("ID card");
+      }
+    })();
   }, [permission]);
 
   const handleCapture = async () => {
     if (!cameraRef.current) return;
 
     try {
-      const photo = await cameraRef.current.takePictureAsync({ quality: 0.8 });
+      setIsSaving(true);
+
+      const photo = await cameraRef.current.takePictureAsync({
+        quality: 0.8,
+        base64: true,
+      });
+
       setCapturedPhoto(photo.uri);
       setIsCameraReady(true);
+
+      await updateManualKycDraft({
+        documentImageUri: photo.uri,
+        documentImageBase64: photo.base64,
+      });
     } catch (error) {
       console.log("Capture error:", error);
       setCameraError("Failed to capture photo");
+    } finally {
+      setIsSaving(false);
     }
+  };
+
+  const handleContinue = () => {
+    if (!capturedPhoto) return;
+    navigation.navigate("LivenessVerify");
+  };
+
+  const handleRetake = () => {
+    setCapturedPhoto(null);
+    setCameraError(null);
   };
 
   if (!permission?.granted) {
@@ -70,7 +111,7 @@ const SelectDocumentScreen: React.FC = () => {
           <Ionicons name="chevron-back" size={moderateScale(18)} color="#000" />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>Take a picture of your ID card</Text>
+        <Text style={styles.headerTitle}>{`Take a picture of your ${documentLabel}`}</Text>
 
         <View style={{ width: moderateScale(24) }} />
       </View>
@@ -118,11 +159,11 @@ const SelectDocumentScreen: React.FC = () => {
       <View style={styles.infoSection}>
         {capturedPhoto ? (
           <Text style={styles.capturedText}>
-            Picture Saved, click nect to continue
+            Picture saved. Continue to liveness verification.
           </Text>
         ) : (
           <>
-            <Text style={styles.title}>Front of ID Card</Text>
+            <Text style={styles.title}>{`Front of ${documentLabel}`}</Text>
             <Text style={styles.subtitle}>
               Ensure all 4 sides are visible and text is clear
             </Text>
@@ -132,12 +173,19 @@ const SelectDocumentScreen: React.FC = () => {
 
       <View style={styles.bottomControls}>
         {capturedPhoto ? (
-          <TouchableOpacity
-            style={styles.nextButton}
-            onPress={() => console.log("Next pressed")}
-          >
-            <Text style={styles.nextButtonText}>Next</Text>
-          </TouchableOpacity>
+          <View style={styles.savedActionsWrap}>
+            <TouchableOpacity style={styles.retakeButton} onPress={handleRetake}>
+              <Text style={styles.retakeButtonText}>Retake</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.nextButton}
+              onPress={handleContinue}
+              disabled={isSaving}
+            >
+              <Text style={styles.nextButtonText}>Next</Text>
+            </TouchableOpacity>
+          </View>
         ) : (
           <>
             <TouchableOpacity
@@ -155,7 +203,7 @@ const SelectDocumentScreen: React.FC = () => {
             <TouchableOpacity
               style={styles.captureButton}
               onPress={handleCapture}
-              disabled={!isCameraReady || !!cameraError}
+              disabled={!isCameraReady || !!cameraError || isSaving}
             >
               <FontAwesome name="camera" size={26} color="white" />
             </TouchableOpacity>
@@ -260,7 +308,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   nextButton: {
-    width: responsiveWidth(85),
+    width: responsiveWidth(62),
     height: responsiveHeight(6.5),
     backgroundColor: "#0B3963",
     borderRadius: moderateScale(10),
@@ -271,5 +319,29 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: responsiveFontSize(2),
     fontFamily: "Manrope-Bold",
+  },
+
+  savedActionsWrap: {
+    width: responsiveWidth(90),
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+
+  retakeButton: {
+    width: responsiveWidth(24),
+    height: responsiveHeight(6.5),
+    borderRadius: moderateScale(10),
+    borderWidth: 1,
+    borderColor: "#0B3963",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F4F8FF",
+  },
+
+  retakeButtonText: {
+    color: "#0B3963",
+    fontSize: responsiveFontSize(1.8),
+    fontFamily: "Manrope-SemiBold",
   },
 });

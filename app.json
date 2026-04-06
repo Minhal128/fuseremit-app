@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/app-icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "newArchEnabled": false,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -24,7 +24,9 @@
       "predictiveBackGestureEnabled": false,
       "permissions": [
         "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION"
       ],
       "package": "com.busines2202.fuseremitapp"
     },
@@ -35,9 +37,21 @@
       "expo-font",
       "@react-native-community/datetimepicker",
       [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow FuseRemit to use Face ID / Fingerprint for secure login"
+        }
+      ],
+      [
         "expo-camera",
         {
           "cameraPermission": "Allow this app to access your camera"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow FuseRemit to detect your country for KYC"
         }
       ]
     ],
