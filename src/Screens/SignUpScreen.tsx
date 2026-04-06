@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 
 import {
@@ -19,11 +20,14 @@ import {
 
 import { moderateScale } from "react-native-size-matters";
 import { Feather, Ionicons } from "@expo/vector-icons";
-import { Calendar } from "react-native-calendars";
+import { DatePickerModal, en, registerTranslation } from "react-native-paper-dates";
+import { registerAccount, requestEmailLoginOtp } from "../services/authApi";
 
 interface Props {
   navigation: any;
 }
+
+registerTranslation("en", en);
 
 const SignUpScreen = ({ navigation }: Props) => {
   const [first, setFirst] = useState("");
@@ -34,47 +38,120 @@ const SignUpScreen = ({ navigation }: Props) => {
   const [gender, setGender] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
 
-  const [date, setDate] = useState<any>(null);
-  const [dateInput, setDateInput] = useState("");
+  const [date, setDate] = useState<Date | undefined>(undefined);
   const [showCalendar, setShowCalendar] = useState(false);
 
   const [checked, setChecked] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const genderOptions = ["Male", "Female", "Other"];
 
-  const isValid =
-    first && last && email && password && gender && date && checked;
+  const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const isValidPassword = password.trim().length >= 8;
 
-  const borderColor = (value: any) =>
+  const isValid =
+    first.trim() &&
+    last.trim() &&
+    isValidEmail &&
+    isValidPassword &&
+    gender &&
+    date &&
+    checked;
+
+  const borderColor = (value: unknown) =>
     submitted && !value ? "#FB002E" : "#ccc";
 
-  const handleDateTyping = (text: string) => {
-    const numbers = text.replace(/\D/g, "");
+  const formatDate = (value: Date | undefined) => {
+    if (!value) return "DD/MM/YYYY";
 
-    let formatted = numbers;
+    const day = value.getDate().toString().padStart(2, "0");
+    const month = (value.getMonth() + 1).toString().padStart(2, "0");
+    const year = value.getFullYear();
 
-    if (numbers.length > 2 && numbers.length <= 4) {
-      formatted = numbers.slice(0, 2) + "/" + numbers.slice(2);
-    } else if (numbers.length > 4) {
-      formatted =
-        numbers.slice(0, 2) +
-        "/" +
-        numbers.slice(2, 4) +
-        "/" +
-        numbers.slice(4, 8);
-    }
+    return `${day}/${month}/${year}`;
+  };
 
-    setDateInput(formatted);
+  const onConfirmDatePicker = (params: { date: Date | undefined }) => {
+    setShowCalendar(false);
+    setDate(params.date);
+  };
 
-    if (numbers.length === 8) {
-      const day = numbers.slice(0, 2);
-      const month = numbers.slice(2, 4);
-      const year = numbers.slice(4, 8);
+  const handleContinue = () => {
+    void (async () => {
+      setSubmitted(true);
 
-      const isoDate = `${year}-${month}-${day}`;
-      setDate(isoDate);
-    }
+      if (!isValid || !date || isSubmitting) {
+        return;
+      }
+
+      try {
+        setErrorMessage("");
+        setIsSubmitting(true);
+
+        const normalizedEmail = email.trim().toLowerCase();
+        const dateOfBirth = date.toISOString().split("T")[0];
+
+        const registration = await registerAccount({
+          firstName: first.trim(),
+          lastName: last.trim(),
+          email: normalizedEmail,
+          password,
+          gender: gender as "Male" | "Female" | "Other",
+          dateOfBirth,
+        });
+
+        if (__DEV__) {
+          console.log(
+            `[SIGNUP] userId=${registration.id} persistenceVerified=${registration.persistenceVerified}`,
+          );
+        }
+
+        if (!registration.persistenceVerified) {
+          throw new Error("Signup persistence check failed");
+        }
+
+        const otp = await requestEmailLoginOtp({
+          email: normalizedEmail,
+          password,
+        });
+
+        navigation.navigate("PhoneNumberVerify", {
+          challengeId: otp.challengeId,
+          email: normalizedEmail,
+        });
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Unable to create account right now.";
+
+        if (message.toLowerCase().includes("already exists")) {
+          try {
+            const normalizedEmail = email.trim().toLowerCase();
+
+            const otp = await requestEmailLoginOtp({
+              email: normalizedEmail,
+              password,
+            });
+
+            navigation.navigate("PhoneNumberVerify", {
+              challengeId: otp.challengeId,
+              email: normalizedEmail,
+            });
+
+            return;
+          } catch {
+            // Fall through to show the original registration error.
+          }
+        }
+
+        setErrorMessage(message);
+      } finally {
+        setIsSubmitting(false);
+      }
+    })();
   };
 
   return (
@@ -147,23 +224,29 @@ const SignUpScreen = ({ navigation }: Props) => {
         <Text style={styles.label}>Date Of Birth</Text>
 
         <View style={{ position: "relative" }}>
-          <View
+          <TouchableOpacity
             style={[styles.inputContainer, { borderColor: borderColor(date) }]}
+            onPress={() => setShowCalendar(true)}
           >
-            <TextInput
-              style={{ flex: 1 }}
-              placeholder="DD/MM/YYYY"
-              value={dateInput}
-              keyboardType="numeric"
-              maxLength={10}
-              onChangeText={handleDateTyping}
-            />
+            <Text style={styles.dateValue}>{formatDate(date)}</Text>
 
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => setShowCalendar(true)}>
               <Ionicons name="calendar-clear" size={20} color="black" />
             </TouchableOpacity>
-          </View>
+          </TouchableOpacity>
         </View>
+
+        <DatePickerModal
+          locale="en"
+          mode="single"
+          visible={showCalendar}
+          onDismiss={() => setShowCalendar(false)}
+          date={date}
+          onConfirm={onConfirmDatePicker}
+          validRange={{ endDate: new Date() }}
+          label="Select Date of Birth"
+          saveLabel="Select"
+        />
 
         <Text style={styles.label}>Gender</Text>
         <View style={{ position: "relative" }}>
@@ -216,24 +299,30 @@ const SignUpScreen = ({ navigation }: Props) => {
           </Text>
         </TouchableOpacity>
 
+        {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+
         <TouchableOpacity
           style={[
             styles.button,
             {
-              backgroundColor: isValid ? "#0B3963" : "#F5F5F9",
+              backgroundColor: isValid && !isSubmitting ? "#0B3963" : "#F5F5F9",
             },
           ]}
-          disabled={!isValid}
-          onPress={() => navigation.navigate("CreatePin")}
+          disabled={!isValid || isSubmitting}
+          onPress={handleContinue}
         >
-          <Text
-            style={[
-              styles.buttonText,
-              { color: isValid ? "#FFFFFF" : "#1e1e1e8c" },
-            ]}
-          >
-            Continue
-          </Text>
+          {isSubmitting ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text
+              style={[
+                styles.buttonText,
+                { color: isValid ? "#FFFFFF" : "#1e1e1e8c" },
+              ]}
+            >
+              Continue
+            </Text>
+          )}
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -297,15 +386,11 @@ const styles = StyleSheet.create({
     fontFamily: "Manrope-Regular",
     color: "black",
   },
-
-  calendarDropdown: {
-    position: "absolute",
-    top: responsiveHeight(6.5),
-    width: "100%",
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    elevation: 5,
-    zIndex: 1000,
+  dateValue: {
+    flex: 1,
+    fontSize: responsiveFontSize(1.7),
+    fontFamily: "Manrope-Regular",
+    color: "black",
   },
 
   dropdownOverlay: {
@@ -350,6 +435,15 @@ const styles = StyleSheet.create({
     fontSize: responsiveFontSize(1.5),
     color: "#1E1E1E",
     fontFamily: "Manrope-Medium",
+  },
+
+  errorText: {
+    marginTop: responsiveHeight(0.5),
+    marginBottom: responsiveHeight(0.6),
+    color: "#FB002E",
+    fontFamily: "Manrope-SemiBold",
+    fontSize: responsiveFontSize(1.35),
+    textAlign: "center",
   },
 
   button: {

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,8 @@ import {
   SafeAreaView,
   StyleSheet,
   StatusBar,
+  Image,
+  ActivityIndicator,
 } from "react-native";
 
 import {
@@ -15,9 +17,10 @@ import {
 } from "react-native-responsive-dimensions";
 
 import { moderateScale } from "react-native-size-matters";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useNavigation } from "@react-navigation/native";
+import { updateManualKycDraft } from "../../services/manualKycDraft";
 
 const PREVIEW_WIDTH = responsiveWidth(60);
 const PREVIEW_HEIGHT = responsiveHeight(45);
@@ -26,12 +29,58 @@ const VerifyItsYouScreen = () => {
   const navigation = useNavigation<any>();
   const cameraRef = useRef<any>(null);
   const [permission, requestPermission] = useCameraPermissions();
+  const [capturedUri, setCapturedUri] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!permission?.granted) {
       requestPermission();
     }
   }, [permission]);
+
+  const handleCapture = () => {
+    void (async () => {
+      if (!cameraRef.current || isSaving) return;
+
+      try {
+        setIsSaving(true);
+        setCameraError(null);
+
+        const photo = await cameraRef.current.takePictureAsync({
+          quality: 0.75,
+          base64: true,
+        });
+
+        setCapturedUri(photo.uri);
+
+        await updateManualKycDraft({
+          livenessImageUri: photo.uri,
+          livenessImageBase64: photo.base64,
+        });
+      } catch (error) {
+        setCameraError(
+          error instanceof Error ? error.message : "Unable to capture liveness image.",
+        );
+      } finally {
+        setIsSaving(false);
+      }
+    })();
+  };
+
+  const handleContinue = () => {
+    if (!capturedUri) {
+      setCameraError("Please capture a liveness photo first.");
+      return;
+    }
+
+    navigation.replace("VerificationProgress");
+  };
+
+  const handleRetake = () => {
+    setCapturedUri(null);
+    setCameraError(null);
+  };
 
   if (!permission?.granted) {
     return (
@@ -56,7 +105,11 @@ const VerifyItsYouScreen = () => {
 
       <View style={styles.previewWrapper}>
         <View style={styles.cameraOuter}>
-          <CameraView ref={cameraRef} style={styles.camera} facing="front" />
+          {capturedUri ? (
+            <Image source={{ uri: capturedUri }} style={styles.camera} />
+          ) : (
+            <CameraView ref={cameraRef} style={styles.camera} facing="front" />
+          )}
         </View>
 
         <View style={styles.borderWrapper} pointerEvents="none">
@@ -65,15 +118,36 @@ const VerifyItsYouScreen = () => {
       </View>
 
       <Text style={styles.instruction}>
-        Please align your face within the frame
+        {capturedUri
+          ? "Liveness photo captured. Continue to verification."
+          : "Please align your face within the frame"}
       </Text>
 
-      <TouchableOpacity
-        style={styles.nextButton}
-        onPress={() => navigation.replace("VerificationProgress")}
-      >
-        <Text style={styles.nextButtonText}>Next</Text>
-      </TouchableOpacity>
+      {cameraError ? <Text style={styles.errorText}>{cameraError}</Text> : null}
+
+      {!capturedUri ? (
+        <TouchableOpacity
+          style={styles.captureButton}
+          onPress={handleCapture}
+          disabled={isSaving}
+        >
+          {isSaving ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <FontAwesome name="camera" size={24} color="#fff" />
+          )}
+        </TouchableOpacity>
+      ) : (
+        <View style={styles.bottomActions}>
+          <TouchableOpacity style={styles.retakeButton} onPress={handleRetake}>
+            <Text style={styles.retakeButtonText}>Retake</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.nextButton} onPress={handleContinue}>
+            <Text style={styles.nextButtonText}>Next</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </SafeAreaView>
   );
 };
@@ -148,12 +222,40 @@ const styles = StyleSheet.create({
     color: "#555",
     fontFamily: "Manrope-SemiBold",
     textAlign: "center",
+    paddingHorizontal: responsiveWidth(8),
+  },
+
+  errorText: {
+    marginTop: responsiveHeight(1.2),
+    color: "#FB002E",
+    fontSize: responsiveFontSize(1.45),
+    fontFamily: "Manrope-SemiBold",
+    textAlign: "center",
+    width: responsiveWidth(85),
+  },
+
+  captureButton: {
+    position: "absolute",
+    bottom: responsiveHeight(6),
+    width: responsiveWidth(18),
+    height: responsiveWidth(18),
+    borderRadius: responsiveWidth(9),
+    backgroundColor: "#0B3963",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  bottomActions: {
+    position: "absolute",
+    bottom: responsiveHeight(6),
+    width: responsiveWidth(90),
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
 
   nextButton: {
-    position: "absolute",
-    bottom: responsiveHeight(6),
-    width: responsiveWidth(85),
+    width: responsiveWidth(62),
     height: responsiveHeight(6.5),
     backgroundColor: "#0B3963",
     borderRadius: moderateScale(10),
@@ -164,5 +266,22 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: responsiveFontSize(2),
     fontFamily: "Manrope-Bold",
+  },
+
+  retakeButton: {
+    width: responsiveWidth(24),
+    height: responsiveHeight(6.5),
+    borderRadius: moderateScale(10),
+    borderWidth: 1,
+    borderColor: "#0B3963",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F4F8FF",
+  },
+
+  retakeButtonText: {
+    color: "#0B3963",
+    fontSize: responsiveFontSize(1.8),
+    fontFamily: "Manrope-SemiBold",
   },
 });

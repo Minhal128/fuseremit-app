@@ -1,4 +1,5 @@
 import { useFonts } from "expo-font";
+import { Provider as PaperProvider } from "react-native-paper";
 import AppNavigator from "./src/navigation/AppNavigator";
 
 export default function App() {
@@ -13,5 +14,10 @@ export default function App() {
   if (!fontsLoaded) {
     return null;
   }
-  return <AppNavigator />;
+
+  return (
+    <PaperProvider>
+      <AppNavigator />
+    </PaperProvider>
+  );
 }

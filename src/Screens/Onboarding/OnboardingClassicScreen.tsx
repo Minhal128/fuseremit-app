@@ -19,6 +19,8 @@ import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import * as DocumentPicker from "expo-document-picker";
 import Svg, { Circle } from "react-native-svg";
 import { useNavigation } from "@react-navigation/native";
+import { getAccessTokenAsync } from "../../services/session";
+import { updateKycStatus } from "../../services/userApi";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -31,6 +33,7 @@ const OnboardingClassicScreen: React.FC = () => {
   const [fileType, setFileType] = useState<"image" | "pdf" | null>(null);
   const [fileName, setFileName] = useState<string>("");
   const [progress, setProgress] = useState<number>(0);
+  const [syncError, setSyncError] = useState<string>("");
 
   const animatedValue = useRef(new Animated.Value(0)).current;
 
@@ -45,11 +48,39 @@ const OnboardingClassicScreen: React.FC = () => {
   // Auto navigate after 3 seconds when completed
   useEffect(() => {
     if (progress === 100) {
+      let isMounted = true;
+
+      const syncClassicTier = async () => {
+        const accessToken = await getAccessTokenAsync();
+
+        if (!accessToken) {
+          return;
+        }
+
+        try {
+          await updateKycStatus(accessToken, "in_progress");
+        } catch (error) {
+          if (!isMounted) return;
+
+          const message =
+            error instanceof Error
+              ? error.message
+              : "Unable to sync classic upgrade status";
+
+          setSyncError(message);
+        }
+      };
+
+      void syncClassicTier();
+
       const timer = setTimeout(() => {
         navigation.navigate("MainOnboarding");
-      }, 3000);
+      }, 2500);
 
-      return () => clearTimeout(timer);
+      return () => {
+        isMounted = false;
+        clearTimeout(timer);
+      };
     }
   }, [progress]);
 
@@ -247,6 +278,8 @@ const OnboardingClassicScreen: React.FC = () => {
             </View>
           </View>
         )}
+
+        {syncError ? <Text style={styles.syncErrorText}>{syncError}</Text> : null}
       </View>
     </SafeAreaView>
   );
@@ -324,4 +357,10 @@ const styles = StyleSheet.create({
   },
   fileName: { fontFamily: "Manrope-SemiBold" },
   progressText: { fontSize: 12, color: "#555" },
+  syncErrorText: {
+    marginTop: responsiveHeight(1.2),
+    color: "#FB002E",
+    fontFamily: "Manrope-SemiBold",
+    fontSize: responsiveFontSize(1.3),
+  },
 });

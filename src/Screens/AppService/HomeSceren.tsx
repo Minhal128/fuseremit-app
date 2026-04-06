@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   SafeAreaView,
   StatusBar,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 
 import {
@@ -19,13 +20,99 @@ import {
 
 import { moderateScale } from "react-native-size-matters";
 import { FontAwesome, FontAwesome5 } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import {
+  CommonActions,
+  useFocusEffect,
+  useNavigation,
+} from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import ButtonsScreen from "./Home/ButtonsScreen";
 import RecentTransactions from "./Home/RecentTransactions";
+import { clearSession, getAccessTokenAsync } from "../../services/session";
+import { fetchCurrentUserStatus } from "../../services/userApi";
+
+interface DashboardIdentityState {
+  firstName: string;
+  accountTier: "Classic" | "Premium";
+  kycStatus: "pending" | "in_progress" | "verified" | "rejected";
+}
 
 const HomeScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const [identity, setIdentity] = useState<DashboardIdentityState | null>(null);
+  const [isLoadingIdentity, setIsLoadingIdentity] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const redirectToLogin = useCallback(() => {
+    const rootNavigator = navigation.getParent()?.getParent();
+
+    if (rootNavigator) {
+      rootNavigator.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: "Login" }],
+        }),
+      );
+
+      return;
+    }
+
+    navigation.navigate("Login");
+  }, [navigation]);
+
+  const loadDashboardIdentity = useCallback(async () => {
+    try {
+      setErrorMessage("");
+      setIsLoadingIdentity(true);
+
+      const accessToken = await getAccessTokenAsync();
+
+      if (!accessToken) {
+        redirectToLogin();
+        return;
+      }
+
+      const me = await fetchCurrentUserStatus(accessToken);
+
+      setIdentity({
+        firstName: me.firstName?.trim() || "there",
+        accountTier: me.accountTier,
+        kycStatus: me.kycStatus,
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Unable to sync dashboard right now.";
+
+      const normalized = message.toLowerCase();
+      if (normalized.includes("token") || normalized.includes("auth")) {
+        await clearSession();
+        redirectToLogin();
+        return;
+      }
+
+      setErrorMessage(message);
+    } finally {
+      setIsLoadingIdentity(false);
+    }
+  }, [redirectToLogin]);
+
+  useFocusEffect(
+    useCallback(() => {
+      void loadDashboardIdentity();
+    }, [loadDashboardIdentity]),
+  );
+
+  const kycLabel = useMemo(() => {
+    if (!identity) return "Pending";
+
+    if (identity.kycStatus === "verified") return "Verified";
+    if (identity.kycStatus === "in_progress") return "In Review";
+    if (identity.kycStatus === "rejected") return "Rejected";
+
+    return "Pending";
+  }, [identity]);
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -46,6 +133,21 @@ const HomeScreen: React.FC = () => {
                 <View>
                   <Text style={styles.balanceLabel}>Total Balance</Text>
                   <Text style={styles.balanceAmount}>$2,450.75</Text>
+
+                  {isLoadingIdentity ? (
+                    <View style={styles.identityLoadingRow}>
+                      <ActivityIndicator size="small" color="#FFFFFF" />
+                      <Text style={styles.identityLoadingText}>Syncing profile...</Text>
+                    </View>
+                  ) : (
+                    <Text style={styles.identityText}>
+                      {`Hi ${identity?.firstName ?? "there"} • ${identity?.accountTier ?? "Classic"} • KYC ${kycLabel}`}
+                    </Text>
+                  )}
+
+                  {errorMessage ? (
+                    <Text style={styles.identityErrorText}>{errorMessage}</Text>
+                  ) : null}
                 </View>
 
                 <TouchableOpacity onPress={() => navigation.navigate("MayaAI")}>
@@ -104,20 +206,22 @@ const HomeScreen: React.FC = () => {
                 <Text style={styles.cardTitle}>FUSE AI Insights</Text>
 
                 <Text style={styles.cardSub}>
-                  Maya analyzed your financial patterns
+                  {identity
+                    ? `Maya analyzed ${identity.firstName}'s latest account activity`
+                    : "Maya analyzed your financial patterns"}
                 </Text>
 
                 <View style={styles.bulletRow}>
                   <Text style={styles.bullet}>•</Text>
                   <Text style={styles.bulletText}>
-                    FUSE optimization saved you $45 this month on transfer fees
+                    Tier status: {identity?.accountTier ?? "Classic"}. Keep transacting to unlock better transfer benefits.
                   </Text>
                 </View>
 
                 <View style={styles.bulletRow}>
                   <Text style={styles.bullet}>•</Text>
                   <Text style={styles.bulletText}>
-                    No suspicious activity detected in your recent transactions
+                    KYC status: {kycLabel}. Your dashboard is synced securely with your backend profile.
                   </Text>
                 </View>
               </View>
@@ -158,6 +262,34 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: responsiveFontSize(4),
     fontFamily: "Manrope-Bold",
+  },
+
+  identityLoadingRow: {
+    marginTop: responsiveHeight(0.8),
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  identityLoadingText: {
+    color: "#E1E7F0",
+    marginLeft: responsiveWidth(2),
+    fontSize: responsiveFontSize(1.4),
+    fontFamily: "Manrope-SemiBold",
+  },
+
+  identityText: {
+    marginTop: responsiveHeight(0.8),
+    color: "#DCE8FF",
+    fontSize: responsiveFontSize(1.4),
+    fontFamily: "Manrope-SemiBold",
+  },
+
+  identityErrorText: {
+    marginTop: responsiveHeight(0.4),
+    color: "#FFD3D3",
+    fontSize: responsiveFontSize(1.2),
+    fontFamily: "Manrope-SemiBold",
+    maxWidth: responsiveWidth(58),
   },
 
   robotCircle: {
