@@ -9,6 +9,7 @@ import {
   StatusBar,
   ScrollView,
   TextInput,
+  ActivityIndicator,
 } from "react-native";
 
 import {
@@ -21,15 +22,72 @@ import { moderateScale } from "react-native-size-matters";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { getAccessTokenAsync, getSessionUser, setSession } from "../../services/session";
+import { updateProfile } from "../../services/authApi";
+import { Alert } from "react-native";
 
 const ProfileSettingScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const [isNameEditable, setIsNameEditable] = useState(false);
   const [isEmailEditable, setIsEmailEditable] = useState(false);
+  const [isPhoneEditable, setIsPhoneEditable] = useState(false);
 
-  const [fullName, setFullName] = useState("Alex Johnson");
-  const [email, setEmail] = useState("alex.johnson@email.com");
-  const [phone, setPhone] = useState("+1 555-0192");
+  const sessionUser = getSessionUser();
+  const [fullName, setFullName] = useState(
+    sessionUser ? `${sessionUser.firstName} ${sessionUser.lastName}`.trim() : ""
+  );
+  const [email, setEmail] = useState(sessionUser?.email ?? "");
+  const [phone, setPhone] = useState(sessionUser?.phoneNumber ?? "");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSave = async () => {
+    if (isSubmitting) return;
+
+    const accessToken = await getAccessTokenAsync();
+    if (!accessToken) {
+      Alert.alert("Error", "Session expired. Please login again.");
+      return;
+    }
+
+    const nameParts = fullName.trim().split(/\s+/);
+    const firstName = nameParts[0];
+    const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
+
+    setIsSubmitting(true);
+    try {
+      const payload: any = {
+        firstName,
+        lastName,
+        email: email.trim().toLowerCase(),
+        phoneNumber: phone.trim(),
+      };
+
+      const updatedUser = await updateProfile(payload, accessToken);
+
+      // Update local session
+      if (sessionUser) {
+        await setSession({
+          accessToken,
+          user: {
+            ...sessionUser,
+            firstName: updatedUser.firstName,
+            lastName: updatedUser.lastName,
+            email: updatedUser.email,
+            phoneNumber: updatedUser.phoneNumber,
+          },
+        });
+      }
+
+      Alert.alert("Success", "Profile updated successfully!");
+      setIsNameEditable(false);
+      setIsEmailEditable(false);
+      setIsPhoneEditable(false);
+    } catch (error) {
+      Alert.alert("Error", error instanceof Error ? error.message : "Failed to update profile");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -109,18 +167,31 @@ const ProfileSettingScreen: React.FC = () => {
           <View style={styles.inputContainer}>
             <TextInput
               value={phone}
-              editable
+              editable={isPhoneEditable}
               onChangeText={setPhone}
               style={styles.input}
               keyboardType="phone-pad"
             />
+            <TouchableOpacity
+              onPress={() => setIsPhoneEditable(!isPhoneEditable)}
+            >
+              <Feather name="edit" size={20} color="#000000" />
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
 
       <View style={styles.buttonWrapper}>
-        <TouchableOpacity style={styles.saveButton}>
-          <Text style={styles.saveButtonText}>Save Changes</Text>
+        <TouchableOpacity
+          style={[styles.saveButton, isSubmitting && { opacity: 0.7 }]}
+          onPress={handleSave}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <ActivityIndicator color="#FFF" size="small" />
+          ) : (
+            <Text style={styles.saveButtonText}>Save Changes</Text>
+          )}
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -212,6 +283,8 @@ const styles = StyleSheet.create({
     fontSize: responsiveFontSize(1.5),
     color: "#000",
     fontFamily: "Manrope-SemiBold",
+    paddingVertical: 0,
+    height: "100%",
   },
 
   buttonWrapper: {

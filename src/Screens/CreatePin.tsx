@@ -19,19 +19,24 @@ import { moderateScale } from "react-native-size-matters";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import * as LocalAuthentication from "expo-local-authentication";
 import PinSuccessModal from "../Components/Login/PinSuccessModal";
-import { createPin } from "../services/authApi";
-import { getAccessTokenAsync, markPinCreated } from "../services/session";
+import { createPin, setupBiometric, verifyForgotPinOtp, requestForgotPinOtp } from "../services/authApi";
+import { getAccessTokenAsync, markPinCreated, setBiometricToken, clearSession, getSessionUser } from "../services/session";
 
 interface Props {
   navigation: any;
+  route?: any;
 }
 
-const CreatePin = ({ navigation }: Props) => {
+const CreatePin = ({ navigation, route }: Props) => {
   const [pin, setPin] = useState<string>("");
   const [modalVisible, setModalVisible] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [helperMessage, setHelperMessage] = useState<string>("");
+  const [lastPin, setLastPin] = useState<string>("");
+
+  const requestChallengeId = route?.params?.challengeId;
+  const requestOtp = route?.params?.otp;
 
   const submitPin = useCallback(async (pinValue: string) => {
     const accessToken = await getAccessTokenAsync();
@@ -45,8 +50,23 @@ const CreatePin = ({ navigation }: Props) => {
       setErrorMessage("");
       setIsSubmitting(true);
 
-      await createPin({ pin: pinValue }, accessToken);
-      markPinCreated();
+      if (requestChallengeId && requestOtp) {
+        await verifyForgotPinOtp({
+          challengeId: requestChallengeId,
+          otp: requestOtp,
+          newPin: pinValue,
+        });
+        setHelperMessage("PIN reset successful!");
+      } else {
+        if (!accessToken) {
+          navigation.navigate("Login");
+          return;
+        }
+        await createPin({ pin: pinValue }, accessToken);
+        markPinCreated();
+      }
+
+      setLastPin(pinValue);
       setModalVisible(true);
     } catch (error) {
       const message =
@@ -106,6 +126,54 @@ const CreatePin = ({ navigation }: Props) => {
         setHelperMessage("Fingerprint verified. Continue entering your PIN.");
       }
     })();
+  };
+
+  const handleEnableBiometric = async () => {
+    const accessToken = await getAccessTokenAsync();
+    if (!accessToken || !lastPin) return;
+
+    try {
+      const { biometricToken } = await setupBiometric({ pin: lastPin }, accessToken);
+      await setBiometricToken(biometricToken);
+      setHelperMessage("Biometric login enabled successfully!");
+      setModalVisible(false);
+      // Wait a bit to show message before navigating
+      setTimeout(() => {
+        navigation.navigate("MainOnboarding");
+      }, 1500);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Failed to enable biometric");
+    }
+  };
+
+  const handleLogout = async () => {
+    await clearSession();
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "Login" }],
+    });
+  };
+
+  const handleForgotPin = async () => {
+    const user = getSessionUser();
+    if (!user?.email) {
+      handleLogout();
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const data = await requestForgotPinOtp({ email: user.email });
+      navigation.navigate("PhoneNumberVerify", {
+        challengeId: data.challengeId,
+        email: user.email,
+        purpose: "forgot_pin",
+      });
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Failed to request reset");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const renderDot = (index: number) => {
@@ -217,8 +285,13 @@ const CreatePin = ({ navigation }: Props) => {
       ) : null}
 
       <View style={styles.footer}>
-        <Text style={styles.forgot}>Forgot your PIN?</Text>
-        <Text style={styles.logout}>Logout</Text>
+        <TouchableOpacity onPress={handleForgotPin}>
+          <Text style={styles.forgot}>Forgot your PIN?</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={handleLogout}>
+          <Text style={styles.logout}>Logout</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Modal */}
@@ -226,6 +299,7 @@ const CreatePin = ({ navigation }: Props) => {
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         navigation={navigation}
+        onEnableBiometric={handleEnableBiometric}
       />
     </SafeAreaView>
   );

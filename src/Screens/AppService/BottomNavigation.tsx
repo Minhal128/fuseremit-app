@@ -14,15 +14,19 @@ import SendMoneyStack from "../../Components/SendMoney/SendMoneyStack";
 import HistoryStack from "../../Components/History/HistoryStack";
 import ProfileStack from "../../Components/Profile/ProfileStack";
 
+import { useLanguage } from "../../context/LanguageContext";
+
 const Tab = createBottomTabNavigator();
 
 const BottomNavigation = () => {
+  const { t, isRTL } = useLanguage();
+
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
-        tabBarStyle: styles.tabBar,
+        tabBarStyle: [styles.tabBar, { flexDirection: isRTL ? 'row-reverse' : 'row' }],
       }}
     >
       {/* HOME */}
@@ -41,8 +45,13 @@ const BottomNavigation = () => {
                 style={styles.iconImage}
                 resizeMode="contain"
               />
-              <Text style={[styles.label, focused && styles.labelActive]}>
-                Home
+              <Text 
+                style={[styles.label, focused && styles.labelActive]}
+                numberOfLines={1}
+                adjustsFontSizeToFit={true}
+                minimumFontScale={0.5}
+              >
+                {t("common.home")}
               </Text>
             </View>
           ),
@@ -65,8 +74,13 @@ const BottomNavigation = () => {
                 style={styles.centerIcon}
                 resizeMode="contain"
               />
-              <Text style={[styles.label, focused && styles.labelActive]}>
-                {"Send\nFuse"}
+              <Text 
+                style={[styles.label, focused && styles.labelActive]}
+                numberOfLines={1}
+                adjustsFontSizeToFit={true}
+                minimumFontScale={0.5}
+              >
+                {t("common.sendFuse")}
               </Text>
             </View>
           ),
@@ -89,8 +103,13 @@ const BottomNavigation = () => {
                 style={styles.iconImage}
                 resizeMode="contain"
               />
-              <Text style={[styles.label, focused && styles.labelActive]}>
-                History
+              <Text 
+                style={[styles.label, focused && styles.labelActive]}
+                numberOfLines={1}
+                adjustsFontSizeToFit={true}
+                minimumFontScale={0.5}
+              >
+                {t("common.history")}
               </Text>
             </View>
           ),
@@ -113,8 +132,13 @@ const BottomNavigation = () => {
                 style={styles.iconImage}
                 resizeMode="contain"
               />
-              <Text style={[styles.label, focused && styles.labelActive]}>
-                Alerts
+              <Text 
+                style={[styles.label, focused && styles.labelActive]}
+                numberOfLines={1}
+                adjustsFontSizeToFit={true}
+                minimumFontScale={0.5}
+              >
+                {t("common.alerts")}
               </Text>
             </View>
           ),
@@ -137,8 +161,13 @@ const BottomNavigation = () => {
                 style={styles.iconImage}
                 resizeMode="contain"
               />
-              <Text style={[styles.label, focused && styles.labelActive]}>
-                Profile
+              <Text 
+                style={[styles.label, focused && styles.labelActive]}
+                numberOfLines={1}
+                adjustsFontSizeToFit={true}
+                minimumFontScale={0.5}
+              >
+                {t("common.profile")}
               </Text>
             </View>
           ),
@@ -179,12 +208,12 @@ const styles = StyleSheet.create({
   },
 
   label: {
-    fontSize: responsiveFontSize(1.4),
+    fontSize: responsiveFontSize(1.2),
     marginTop: responsiveHeight(0.3),
     color: "#0B3963",
     fontFamily: "Manrope-SemiBold",
     textAlign: "center",
-    width: "100%",
+    width: responsiveWidth(18),
   },
 
   labelActive: {

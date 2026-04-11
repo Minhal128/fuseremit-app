@@ -8,6 +8,7 @@ import {
   Animated,
   Easing,
   Image,
+  ActivityIndicator,
 } from "react-native";
 import {
   responsiveHeight,
@@ -21,9 +22,10 @@ interface Props {
   visible: boolean;
   onClose: () => void;
   navigation: any;
+  onEnableBiometric?: () => Promise<void>;
 }
 
-const PinSuccessModal: React.FC<Props> = ({ visible, onClose, navigation }) => {
+const PinSuccessModal: React.FC<Props> = ({ visible, onClose, navigation, onEnableBiometric }) => {
   const slideAnim = useRef(new Animated.Value(300)).current;
 
   useEffect(() => {
@@ -37,6 +39,19 @@ const PinSuccessModal: React.FC<Props> = ({ visible, onClose, navigation }) => {
       }).start();
     }
   }, [visible]);
+
+  const [isEnrolling, setIsEnrolling] = React.useState(false);
+
+  const handleBiometric = async () => {
+    if (onEnableBiometric) {
+      setIsEnrolling(true);
+      try {
+        await onEnableBiometric();
+      } finally {
+        setIsEnrolling(false);
+      }
+    }
+  };
 
   return (
     <Modal
@@ -67,6 +82,30 @@ const PinSuccessModal: React.FC<Props> = ({ visible, onClose, navigation }) => {
           <Text style={styles.subtitle}>
             You’ve created your account successfully
           </Text>
+
+          {onEnableBiometric && (
+            <TouchableOpacity
+              style={[styles.button, styles.biometricButton]}
+              onPress={handleBiometric}
+              disabled={isEnrolling}
+            >
+              {isEnrolling ? (
+                <ActivityIndicator color="#0B3963" />
+              ) : (
+                <>
+                  <Feather
+                    name="mic"
+                    size={moderateScale(18)}
+                    color="#0B3963"
+                    style={{ marginRight: 8 }}
+                  />
+                  <Text style={[styles.buttonText, styles.biometricButtonText]}>
+                    Enable Biometric Login
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity
             style={styles.button}
@@ -138,6 +177,17 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginBottom: responsiveHeight(2),
+  },
+
+  biometricButton: {
+    backgroundColor: "#fff",
+    borderWidth: 1.5,
+    borderColor: "#0B3963",
+    flexDirection: "row",
+  },
+
+  biometricButtonText: {
+    color: "#0B3963",
   },
 
   buttonText: {

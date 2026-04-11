@@ -22,6 +22,7 @@ import { Feather } from "@expo/vector-icons";
 import {
   resendEmailLoginOtp,
   verifyEmailLoginOtp,
+  verifyForgotPinOtp,
 } from "../../services/authApi";
 import { setSession } from "../../services/session";
 
@@ -43,6 +44,7 @@ const PhoneNumberVerify = ({ navigation, route }: Props) => {
 
   const challengeId: string | undefined = route?.params?.challengeId;
   const email: string = route?.params?.email || "";
+  const purpose: string = route?.params?.purpose || "login";
 
   const inputs = useRef<(TextInput | null)[]>([]);
 
@@ -120,6 +122,48 @@ const PhoneNumberVerify = ({ navigation, route }: Props) => {
       try {
         setErrorMessage("");
         setIsSubmitting(true);
+
+        if (purpose === "forgot_pin") {
+          // For forgot_pin, we need a NEW pin. 
+          // However, the verifyForgotPinOtp backend command expects the newPin.
+          // Since this screen ONLY captures the OTP, I should either:
+          // A: Capture the new pin here (complex UI change)
+          // B: Just verify OTP here and then let them set PIN in next screen.
+          // Wait, my backend command `verifyForgotPinOtpCommand` DOES expect `newPin`.
+          // I should probably change the backend to just verify the OTP and return a temporary token, 
+          // OR change the UI to capture the PIN here.
+          // Given "without disturbing UI", I'll modify the backend to just verify OTP and return success,
+          // then the frontend goes to CreatePin.
+          // Wait, I already implemented verifyForgotPinOtpCommand in backend which TAKES newPin.
+          
+          // Let's reconsider. If I change the backend:
+          // verifyForgotPinOtpCommand(challengeId, otp) -> returns boolean.
+          // Then frontend goes to CreatePin(token).
+          
+          // Actually, I'll just change the backend command slightly to make newPin optional 
+          // or just implement a separate check.
+          
+          // Actually, I'll just use a 'resetToken' approach.
+          // But I want to keep it simple.
+          
+          // Let's assume for now I'll just capture the OTP and if valid, 
+          // I'll pass the OTP to the NEXT screen (CreatePin) which will then call the final reset.
+          // SoPhoneNumberVerify just verifies it? No, backend verifyForgotPinOtp DOES the reset.
+          
+          // I'll update the backend `verifyForgotPinOtpCommand` to NOT require newPin,
+          // and instead return a `resetToken` that CreatePin uses.
+          // OR, I'll just have CreatePin take the OTP and challengeId.
+          
+          // Let's go with: PhoneNumberVerify JUST navigates to CreatePin 
+          // and passes the OTP and challengeId to it.
+          // Then CreatePin calls the reset.
+          
+          navigation.navigate("CreatePin", {
+            challengeId,
+            otp: otp.join(""),
+          });
+          return;
+        }
 
         const data = await verifyEmailLoginOtp({
           challengeId,

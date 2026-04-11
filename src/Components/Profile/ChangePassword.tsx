@@ -9,6 +9,7 @@ import {
   StatusBar,
   ScrollView,
   TextInput,
+  ActivityIndicator,
 } from "react-native";
 
 import {
@@ -21,6 +22,8 @@ import { moderateScale } from "react-native-size-matters";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { getAccessTokenAsync } from "../../services/session";
+import { changePassword } from "../../services/authApi";
 
 const ChangePassword: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
@@ -32,6 +35,42 @@ const ChangePassword: React.FC = () => {
   const [hideCurrent, setHideCurrent] = useState(true);
   const [hideNew, setHideNew] = useState(true);
   const [hideConfirm, setHideConfirm] = useState(true);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSave = async () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      alert("Please fill in all fields.");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      alert("New passwords do not match.");
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      alert("New password must be at least 8 characters long.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const token = await getAccessTokenAsync();
+      if (!token) {
+        alert("Session expired.");
+        return;
+      }
+
+      await changePassword({ currentPassword, newPassword }, token);
+      alert("Password updated successfully!");
+      navigation.goBack();
+    } catch (error: any) {
+      alert(error.message || "Failed to update password.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -136,8 +175,16 @@ const ChangePassword: React.FC = () => {
       </ScrollView>
 
       <View style={styles.buttonWrapper}>
-        <TouchableOpacity style={styles.saveButton}>
-          <Text style={styles.saveButtonText}>Save Changes</Text>
+        <TouchableOpacity
+          style={[styles.saveButton, isSubmitting && { opacity: 0.7 }]}
+          onPress={handleSave}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <ActivityIndicator color="#FFF" />
+          ) : (
+            <Text style={styles.saveButtonText}>Save Changes</Text>
+          )}
         </TouchableOpacity>
       </View>
     </SafeAreaView>

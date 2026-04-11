@@ -17,7 +17,7 @@ const ProfileStack = () => {
       <Stack.Screen name="MainProfile" component={ProfileScreen} />
       <Stack.Screen name="ProfileSettings" component={ProfileSettingScreen} />
       <Stack.Screen name="SecuritySettings" component={SecuritySettingScreen} />
-      <Stack.Screen name="ChnagePassword" component={ChangePassword} />
+      <Stack.Screen name="ChangePassword" component={ChangePassword} />
       <Stack.Screen
         name="SecurityQuestion"
         component={SecurityQuestionScreen}

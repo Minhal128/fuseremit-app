@@ -25,7 +25,11 @@ interface AlertItem {
   time: string;
 }
 
+import { useLanguage } from "../../context/LanguageContext";
+
 const AlertsScreen: React.FC = () => {
+  const { t, isRTL } = useLanguage();
+  
   const alerts: AlertItem[] = [
     {
       title: "FUSE AI detected Optimal exchange rate for your mexico transfer",
@@ -47,7 +51,7 @@ const AlertsScreen: React.FC = () => {
   const renderIcon = (type: string) => {
     if (type === "success") {
       return (
-        <View style={[styles.iconCircle, { backgroundColor: "#CFF7E2" }]}>
+        <View style={[styles.iconCircle, { backgroundColor: "#CFF7E2", marginRight: isRTL ? 0 : responsiveWidth(3), marginLeft: isRTL ? responsiveWidth(3) : 0 }]}>
           <Feather
             name="arrow-up-right"
             size={moderateScale(18)}
@@ -59,14 +63,14 @@ const AlertsScreen: React.FC = () => {
 
     if (type === "failed") {
       return (
-        <View style={[styles.iconCircle, { backgroundColor: "#FAD4D8" }]}>
+        <View style={[styles.iconCircle, { backgroundColor: "#FAD4D8", marginRight: isRTL ? 0 : responsiveWidth(3), marginLeft: isRTL ? responsiveWidth(3) : 0 }]}>
           <Ionicons name="close" size={moderateScale(18)} color="#E53935" />
         </View>
       );
     }
 
     return (
-      <View style={styles.iconCircle}>
+      <View style={[styles.iconCircle, { marginRight: isRTL ? 0 : responsiveWidth(3), marginLeft: isRTL ? responsiveWidth(3) : 0 }]}>
         <Image
           source={require("../../../assets/robot.png")}
           style={styles.robotImage}
@@ -82,19 +86,19 @@ const AlertsScreen: React.FC = () => {
 
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Alerts</Text>
+          <Text style={styles.headerTitle}>{t("alerts.title")}</Text>
         </View>
 
         {alerts.map((item, index) => (
           <TouchableOpacity key={index} style={styles.card} activeOpacity={0.8}>
-            <View style={styles.row}>
+            <View style={[styles.row, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
               {renderIcon(item.type)}
 
-              <View style={styles.contentWrapper}>
-                <Text style={styles.alertText}>{item.title}</Text>
+              <View style={[styles.contentWrapper, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                <Text style={[styles.alertText, { textAlign: isRTL ? 'right' : 'left' }]}>{item.title}</Text>
 
-                <View style={styles.rightMeta}>
-                  <Text style={styles.aiText}>FUSE AI</Text>
+                <View style={[styles.rightMeta, { alignItems: isRTL ? 'flex-start' : 'flex-end' }]}>
+                  <Text style={styles.aiText}>{t("alerts.aiLabel")}</Text>
                   <Text style={styles.timeText}>{item.time}</Text>
                 </View>
               </View>

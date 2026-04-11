@@ -31,14 +31,18 @@ import RecentTransactions from "./Home/RecentTransactions";
 import { clearSession, getAccessTokenAsync } from "../../services/session";
 import { fetchCurrentUserStatus } from "../../services/userApi";
 
+import { useLanguage } from "../../context/LanguageContext";
+
 interface DashboardIdentityState {
   firstName: string;
   accountTier: "Classic" | "Premium";
   kycStatus: "pending" | "in_progress" | "verified" | "rejected";
+  balance: number;
 }
 
 const HomeScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const { t, isRTL } = useLanguage();
   const [identity, setIdentity] = useState<DashboardIdentityState | null>(null);
   const [isLoadingIdentity, setIsLoadingIdentity] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -75,9 +79,10 @@ const HomeScreen: React.FC = () => {
       const me = await fetchCurrentUserStatus(accessToken);
 
       setIdentity({
-        firstName: me.firstName?.trim() || "there",
+        firstName: me.firstName?.trim() || t("common.welcome"),
         accountTier: me.accountTier,
         kycStatus: me.kycStatus,
+        balance: me.balance ?? 0,
       });
     } catch (error) {
       const message =
@@ -96,7 +101,7 @@ const HomeScreen: React.FC = () => {
     } finally {
       setIsLoadingIdentity(false);
     }
-  }, [redirectToLogin]);
+  }, [redirectToLogin, t]);
 
   useFocusEffect(
     useCallback(() => {
@@ -131,22 +136,28 @@ const HomeScreen: React.FC = () => {
             <View style={styles.contentWrapper}>
               <View style={styles.topSection}>
                 <View>
-                  <Text style={styles.balanceLabel}>Total Balance</Text>
-                  <Text style={styles.balanceAmount}>$2,450.75</Text>
+                  <Text style={[styles.balanceLabel, { textAlign: isRTL ? 'right' : 'left' }]}>
+                    {t("home.totalBalance")}
+                  </Text>
+                  <Text style={[styles.balanceAmount, { textAlign: isRTL ? 'right' : 'left' }]}>
+                    ${identity?.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) ?? "0.00"}
+                  </Text>
 
                   {isLoadingIdentity ? (
-                    <View style={styles.identityLoadingRow}>
+                    <View style={[styles.identityLoadingRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                       <ActivityIndicator size="small" color="#FFFFFF" />
-                      <Text style={styles.identityLoadingText}>Syncing profile...</Text>
+                      <Text style={[styles.identityLoadingText, { [isRTL ? 'marginRight' : 'marginLeft']: responsiveWidth(2) }]}>
+                        {t("home.syncing")}
+                      </Text>
                     </View>
                   ) : (
-                    <Text style={styles.identityText}>
-                      {`Hi ${identity?.firstName ?? "there"} • ${identity?.accountTier ?? "Classic"} • KYC ${kycLabel}`}
+                    <Text style={[styles.identityText, { textAlign: isRTL ? 'right' : 'left' }]}>
+                      {`${t("common.welcome")} ${identity?.firstName ?? "there"} • ${identity?.accountTier ?? "Classic"} • KYC ${kycLabel}`}
                     </Text>
                   )}
 
                   {errorMessage ? (
-                    <Text style={styles.identityErrorText}>{errorMessage}</Text>
+                    <Text style={[styles.identityErrorText, { textAlign: isRTL ? 'right' : 'left' }]}>{errorMessage}</Text>
                   ) : null}
                 </View>
 
@@ -160,17 +171,17 @@ const HomeScreen: React.FC = () => {
                 </TouchableOpacity>
               </View>
 
-              <View style={styles.buttonRow}>
+              <View style={[styles.buttonRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                 <TouchableOpacity
                   style={styles.buttonBox}
                   onPress={() => navigation.navigate("FuseSend")}
                 >
-                  <View style={styles.iconWrapper}>
+                  <View style={[styles.iconWrapper, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                     <Image
                       source={require("../../../assets/robot.png")}
-                      style={styles.fuseIcon}
+                      style={[styles.fuseIcon, { [isRTL ? 'marginLeft' : 'marginRight']: responsiveWidth(2) }]}
                     />
-                    <Text style={styles.buttonText}>FUSE{"\n"}SEND</Text>
+                    <Text style={[styles.buttonText, { textAlign: isRTL ? 'right' : 'left' }]}>{t("home.fuseSend")}</Text>
                   </View>
                 </TouchableOpacity>
 
@@ -178,49 +189,52 @@ const HomeScreen: React.FC = () => {
                   style={styles.buttonBox}
                   onPress={() => navigation.navigate("FuseSend")}
                 >
-                  <View style={styles.iconWrapper}>
+                  <View style={[styles.iconWrapper, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                     <FontAwesome
                       name="send"
                       size={moderateScale(19)}
-                      style={{ marginRight: responsiveWidth(3) }}
+                      style={{ [isRTL ? 'marginLeft' : 'marginRight']: responsiveWidth(3) }}
                       color="#fff"
                     />
-                    <Text style={styles.buttonText}>SEND</Text>
+                    <Text style={[styles.buttonText, { textAlign: isRTL ? 'right' : 'left' }]}>{t("common.send")}</Text>
                   </View>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.buttonBox}>
-                  <View style={styles.iconWrapper}>
+                <TouchableOpacity
+                  style={styles.buttonBox}
+                  onPress={() => navigation.navigate("AddMoney")}
+                >
+                  <View style={[styles.iconWrapper, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
                     <FontAwesome5
                       name="plus"
                       size={moderateScale(19)}
-                      style={{ marginRight: responsiveWidth(3) }}
+                      style={{ [isRTL ? 'marginLeft' : 'marginRight']: responsiveWidth(3) }}
                       color="#fff"
                     />
-                    <Text style={styles.buttonText}>ADD{"\n"}MONEY</Text>
+                    <Text style={[styles.buttonText, { textAlign: isRTL ? 'right' : 'left' }]}>{t("home.addMoney")}</Text>
                   </View>
                 </TouchableOpacity>
               </View>
 
               <View style={styles.card}>
-                <Text style={styles.cardTitle}>FUSE AI Insights</Text>
+                <Text style={[styles.cardTitle, { textAlign: isRTL ? 'right' : 'left' }]}>{t("home.aiInsights")}</Text>
 
-                <Text style={styles.cardSub}>
+                <Text style={[styles.cardSub, { textAlign: isRTL ? 'right' : 'left' }]}>
                   {identity
-                    ? `Maya analyzed ${identity.firstName}'s latest account activity`
-                    : "Maya analyzed your financial patterns"}
+                    ? `${identity.firstName} ${t("home.insightsSub")}`
+                    : t("home.insightsSub")}
                 </Text>
 
-                <View style={styles.bulletRow}>
-                  <Text style={styles.bullet}>•</Text>
-                  <Text style={styles.bulletText}>
+                <View style={[styles.bulletRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                  <Text style={[styles.bullet, { [isRTL ? 'marginLeft' : 'marginRight']: moderateScale(6) }]}>•</Text>
+                  <Text style={[styles.bulletText, { textAlign: isRTL ? 'right' : 'left' }]}>
                     Tier status: {identity?.accountTier ?? "Classic"}. Keep transacting to unlock better transfer benefits.
                   </Text>
                 </View>
 
-                <View style={styles.bulletRow}>
-                  <Text style={styles.bullet}>•</Text>
-                  <Text style={styles.bulletText}>
+                <View style={[styles.bulletRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                  <Text style={[styles.bullet, { [isRTL ? 'marginLeft' : 'marginRight']: moderateScale(6) }]}>•</Text>
+                  <Text style={[styles.bulletText, { textAlign: isRTL ? 'right' : 'left' }]}>
                     KYC status: {kycLabel}. Your dashboard is synced securely with your backend profile.
                   </Text>
                 </View>

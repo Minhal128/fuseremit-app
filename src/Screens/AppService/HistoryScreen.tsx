@@ -32,13 +32,11 @@ type RootStackParamList = {
   HistoryDetail: { item: Transaction };
 };
 
-type NavigationProp = NativeStackNavigationProp<
-  RootStackParamList,
-  "HistoryScreen"
->;
+import { useLanguage } from "../../context/LanguageContext";
 
 const HistoryScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp>();
+  const { t, isRTL } = useLanguage();
 
   const todayTransactions: Transaction[] = [
     { name: "Arlene Mccoy", amount: "$ 1.7123", type: "neutral" },
@@ -67,7 +65,7 @@ const HistoryScreen: React.FC = () => {
   const renderIcon = (type: string) => {
     if (type === "debit") {
       return (
-        <View style={[styles.iconCircle, { backgroundColor: "#FFE5E5" }]}>
+        <View style={[styles.iconCircle, { backgroundColor: "#FFE5E5", marginRight: isRTL ? 0 : responsiveWidth(3), marginLeft: isRTL ? responsiveWidth(3) : 0 }]}>
           <Feather
             name="arrow-down-left"
             size={moderateScale(16)}
@@ -79,7 +77,7 @@ const HistoryScreen: React.FC = () => {
 
     if (type === "credit") {
       return (
-        <View style={[styles.iconCircle, { backgroundColor: "#CFF7E2" }]}>
+        <View style={[styles.iconCircle, { backgroundColor: "#CFF7E2", marginRight: isRTL ? 0 : responsiveWidth(3), marginLeft: isRTL ? responsiveWidth(3) : 0 }]}>
           <Feather
             name="arrow-up-right"
             size={moderateScale(16)}
@@ -91,7 +89,7 @@ const HistoryScreen: React.FC = () => {
 
     return (
       <View
-        style={[styles.iconCircle, { borderColor: "#DADADA", borderWidth: 1 }]}
+        style={[styles.iconCircle, { borderColor: "#DADADA", borderWidth: 1, marginRight: isRTL ? 0 : responsiveWidth(3), marginLeft: isRTL ? responsiveWidth(3) : 0 }]}
       >
         <FontAwesome5 name="sync" size={moderateScale(14)} color="#000000" />
       </View>
@@ -106,16 +104,16 @@ const HistoryScreen: React.FC = () => {
 
   const renderSection = (title: string, data: Transaction[]) => (
     <>
-      <Text style={styles.sectionTitle}>{title}</Text>
+      <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>{title}</Text>
 
       {data.map((item, index) => (
         <TouchableOpacity
           key={index}
-          style={styles.row}
+          style={[styles.row, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
           activeOpacity={0.7}
           onPress={() => handleNavigation(item)}
         >
-          <View style={styles.leftRow}>
+          <View style={[styles.leftRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             {renderIcon(item.type)}
             <Text style={styles.name}>{item.name}</Text>
           </View>
@@ -134,11 +132,11 @@ const HistoryScreen: React.FC = () => {
 
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Transaction History</Text>
+          <Text style={styles.headerTitle}>{t("history.title")}</Text>
         </View>
 
-        {renderSection("Today", todayTransactions)}
-        {renderSection("Yesterday", yesterdayTransactions)}
+        {renderSection(t("history.today"), todayTransactions)}
+        {renderSection(t("history.yesterday"), yesterdayTransactions)}
         {renderSection("12th May, 2025", oldTransactions)}
 
         <View style={{ height: responsiveHeight(4) }} />

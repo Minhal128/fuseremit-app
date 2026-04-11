@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,35 +9,174 @@ import {
   ScrollView,
   Image,
   Switch,
+  Alert,
+  ActivityIndicator,
+  Modal,
+  Pressable,
 } from "react-native";
-
 import {
   responsiveHeight,
   responsiveWidth,
   responsiveFontSize,
 } from "react-native-responsive-dimensions";
-
 import { moderateScale } from "react-native-size-matters";
 import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { useLanguage } from "../../context/LanguageContext";
+import { getAccessTokenAsync } from "../../services/session";
+import { fetchUserSettings, updateUserSettings } from "../../services/userApi";
+import * as Notifications from "expo-notifications";
+
+// Configure how notifications are handled when the app is in the foreground
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 const GeneralSettingScreen: React.FC = () => {
   const navigation = useNavigation();
-  const [twoFactor, setTwoFactor] = useState(false);
-  const [biometric, setBiometric] = useState(false);
+  const { t, changeLanguage, language, isRTL } = useLanguage();
+  
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [emailAlerts, setEmailAlerts] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isLanguageModalVisible, setIsLanguageModalVisible] = useState(false);
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      const token = await getAccessTokenAsync();
+      if (token) {
+        try {
+          const settings = await fetchUserSettings(token);
+          setNotificationsEnabled(settings.preferences.pushNotifications);
+          setEmailAlerts(settings.preferences.emailNotifications);
+        } catch (error) {
+          console.log("Failed to load settings", error);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+    loadSettings();
+  }, []);
+
+  const handleTogglePush = async (value: boolean) => {
+    setNotificationsEnabled(value);
+    
+    if (value) {
+      // Request permissions
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      
+      if (finalStatus !== 'granted') {
+        Alert.alert('Permission Required', 'Please enable notifications in your device settings.');
+        setNotificationsEnabled(false);
+        return;
+      }
+
+      // Trigger "proper notification"
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: "Fuse Remit 🚀",
+          body: "Welcome to Fuse Remit! Your mobile notifications are now active.",
+          sound: true,
+        },
+        trigger: null, // deliver immediately
+      });
+    }
+
+    await syncSettings({ pushNotifications: value });
+  };
+
+  const handleToggleEmail = async (value: boolean) => {
+    setEmailAlerts(value);
+    await syncSettings({ emailNotifications: value });
+  };
+
+  const syncSettings = async (prefs: any) => {
+    const token = await getAccessTokenAsync();
+    if (!token) return;
+
+    setIsUpdating(true);
+    try {
+      let currentPushToken = "";
+      // If push notifications are enabled (either from state or from the new update)
+      if (prefs.pushNotifications || (notificationsEnabled && prefs.pushNotifications !== false)) {
+        try {
+          const pushTokenData = await Notifications.getExpoPushTokenAsync();
+          currentPushToken = pushTokenData.data;
+        } catch (error) {
+          console.log("Error getting push token:", error);
+        }
+      }
+
+      await updateUserSettings(token, {
+        preferences: {
+          language,
+          pushNotifications: notificationsEnabled,
+          emailNotifications: emailAlerts,
+          pushToken: currentPushToken,
+          ...prefs,
+        } as any,
+      });
+    } catch (error) {
+      Alert.alert("Error", "Failed to update settings on server.");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleLanguageChange = () => {
+    setIsLanguageModalVisible(true);
+  };
+
+  const languages = [
+    { code: "en", label: "English (US)" },
+    { code: "ar", label: "Arabic (العربية)" },
+    { code: "de", label: "German (Deutsch)" },
+    { code: "fr", label: "French (Français)" },
+    { code: "es", label: "Spanish (Español)" },
+  ];
+
+  const getCurrentLanguageLabel = () => {
+    const labels: Record<string, string> = {
+      en: "English (US)",
+      ar: "Arabic (العربية)",
+      de: "German (Deutsch)",
+      fr: "French (Français)",
+      es: "Spanish (Español)",
+    };
+    return labels[language] || "English (US)";
+  };
+
+  if (isLoading) {
+    return (
+      <View style={[styles.container, { justifyContent: "center", alignItems: "center" }]}>
+        <ActivityIndicator color="#1F2A50" size="large" />
+      </View>
+    );
+  }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container]}>
       <StatusBar barStyle="dark-content" backgroundColor="#F4F5F7" />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: responsiveHeight(5) }}
       >
-        <View style={styles.header}>
+        <View style={[styles.header, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Feather
-              name="chevron-left"
+              name={isRTL ? "chevron-right" : "chevron-left"}
               size={moderateScale(18)}
               color="#000"
             />
@@ -52,36 +191,104 @@ const GeneralSettingScreen: React.FC = () => {
           <View style={{ width: responsiveWidth(6) }} />
         </View>
 
-        <Text style={styles.title}>GENERAL SETTINGS</Text>
+        <Text style={[styles.title, { textAlign: isRTL ? 'right' : 'left' }]}>{t("generalSettings.title")}</Text>
 
         {menuRow(
-          "Language",
-          "English (US)",
+          t("generalSettings.language"),
+          getCurrentLanguageLabel(),
           require("../../../assets/lang.png"),
-          <Feather name="chevron-right" size={moderateScale(18)} />,
-          //   () => navigation.navigate("ChnagePassword" as never),
+          <Feather name={isRTL ? "chevron-left" : "chevron-right"} size={moderateScale(18)} />,
+          handleLanguageChange,
+          isRTL
         )}
 
         {menuRow(
-          "Push Notifications",
-          "Manage how you receive alerts",
+          t("generalSettings.pushNotifications"),
+          t("generalSettings.pushSub"),
           require("../../../assets/noti.png"),
           <Switch
-            value={biometric}
-            onValueChange={setBiometric}
+            value={notificationsEnabled}
+            onValueChange={handleTogglePush}
             thumbColor="#FFFFFF"
             trackColor={{ false: "#ccc", true: "#253B6E" }}
+            disabled={isUpdating}
           />,
+          undefined,
+          isRTL
         )}
 
         {menuRow(
-          "Privacy Policy",
-          "",
+          t("generalSettings.emailAlerts"),
+          t("generalSettings.emailSub"),
+          require("../../../assets/noti.png"),
+          <Switch
+            value={emailAlerts}
+            onValueChange={handleToggleEmail}
+            thumbColor="#FFFFFF"
+            trackColor={{ false: "#ccc", true: "#253B6E" }}
+            disabled={isUpdating}
+          />,
+          undefined,
+          isRTL
+        )}
+
+        {menuRow(
+          t("generalSettings.privacyPolicy"),
+          t("generalSettings.privacySub"),
           require("../../../assets/privacy.png"),
-          <Feather name="chevron-right" size={moderateScale(18)} />,
+          <Feather name={isRTL ? "chevron-left" : "chevron-right"} size={moderateScale(18)} />,
           () => navigation.navigate("PrivaryPolicy" as never),
+          isRTL
+        )}
+        
+        {isUpdating && (
+          <Text style={{ textAlign: 'center', color: '#666', fontSize: 12, marginTop: 10 }}>
+            Syncing settings...
+          </Text>
         )}
       </ScrollView>
+
+      <Modal
+        visible={isLanguageModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setIsLanguageModalVisible(false)}
+      >
+        <Pressable 
+          style={styles.modalOverlay} 
+          onPress={() => setIsLanguageModalVisible(false)} 
+        />
+        
+        <View style={styles.modalContent}>
+          <View style={[styles.modalHeader, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+             <Text style={styles.modalTitle}>{t("generalSettings.selectLanguage")}</Text>
+             <TouchableOpacity onPress={() => setIsLanguageModalVisible(false)}>
+                <Feather name="x" size={24} color="#000" />
+             </TouchableOpacity>
+          </View>
+
+          {languages.map((item) => {
+            const isSelected = language === item.code;
+            return (
+              <TouchableOpacity
+                key={item.code}
+                style={[styles.languageOption, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
+                onPress={async () => {
+                  await changeLanguage(item.code as any);
+                  setIsLanguageModalVisible(false);
+                }}
+              >
+                <Text style={[styles.languageLabel, isSelected && styles.selectedLabel]}>
+                  {item.label}
+                </Text>
+                {isSelected && (
+                  <View style={styles.selectedDot} />
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -94,28 +301,37 @@ const menuRow = (
   icon: any,
   rightComponent: React.ReactNode,
   onPress?: () => void,
+  isRTL: boolean = false
 ) => {
   const hasSubtitle = subtitle && subtitle.trim().length > 0;
 
   return (
     <TouchableOpacity
-      style={styles.menuCard}
+      style={[styles.menuCard, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
       activeOpacity={0.7}
       onPress={onPress}
       disabled={!onPress}
     >
-      <View style={styles.leftSection}>
-        <Image source={icon} style={styles.menuIcon} />
+      <View style={[styles.leftSection, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+        <Image 
+          source={icon} 
+          style={[styles.menuIcon, { [isRTL ? 'marginLeft' : 'marginRight']: responsiveWidth(3) }]} 
+        />
 
         <View
           style={[
             styles.textContainer,
             !hasSubtitle && { justifyContent: "center" },
+            { alignItems: isRTL ? 'flex-end' : 'flex-start' }
           ]}
         >
-          <Text style={styles.menuTitle}>{title}</Text>
+          <Text style={[styles.menuTitle, { textAlign: isRTL ? 'right' : 'left' }]}>{title}</Text>
 
-          {hasSubtitle && <Text style={styles.menuSubtitle}>{subtitle}</Text>}
+          {hasSubtitle && (
+            <Text style={[styles.menuSubtitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+              {subtitle}
+            </Text>
+          )}
         </View>
       </View>
 
@@ -192,5 +408,53 @@ const styles = StyleSheet.create({
     fontSize: responsiveFontSize(1.4),
     color: "#6B6B6B",
     marginTop: responsiveHeight(0.3),
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  modalContent: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: moderateScale(20),
+    borderTopRightRadius: moderateScale(20),
+    paddingBottom: responsiveHeight(5),
+    paddingHorizontal: responsiveWidth(5),
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: responsiveHeight(2.5),
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
+    marginBottom: responsiveHeight(1),
+  },
+  modalTitle: {
+    fontSize: responsiveFontSize(2),
+    fontFamily: "Manrope-Bold",
+    color: "#1F2A50",
+  },
+  languageOption: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: responsiveHeight(2.2),
+    borderBottomWidth: 1,
+    borderBottomColor: "#F9F9F9",
+  },
+  languageLabel: {
+    fontSize: responsiveFontSize(1.8),
+    fontFamily: "Manrope-Medium",
+    color: "#333",
+  },
+  selectedLabel: {
+    fontFamily: "Manrope-Bold",
+    color: "#1F2A50",
+  },
+  selectedDot: {
+    width: moderateScale(10),
+    height: moderateScale(10),
+    borderRadius: 5,
+    backgroundColor: "#1F2A50",
   },
 });

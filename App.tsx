@@ -1,6 +1,8 @@
 import { useFonts } from "expo-font";
 import { Provider as PaperProvider } from "react-native-paper";
 import AppNavigator from "./src/navigation/AppNavigator";
+import StripeWrapper from "./src/Components/Common/StripeWrapper";
+import { LanguageProvider } from "./src/context/LanguageContext";
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -16,8 +18,12 @@ export default function App() {
   }
 
   return (
-    <PaperProvider>
-      <AppNavigator />
-    </PaperProvider>
+    <LanguageProvider>
+      <PaperProvider>
+        <StripeWrapper>
+          <AppNavigator />
+        </StripeWrapper>
+      </PaperProvider>
+    </LanguageProvider>
   );
 }

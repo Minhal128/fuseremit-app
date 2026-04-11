@@ -41,12 +41,15 @@ interface ProfileIdentity {
   email: string;
 }
 
+import { useLanguage } from "../../context/LanguageContext";
+
 const ProfileScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const { t } = useLanguage();
 
   const sessionUser = getSessionUser();
   const [identity, setIdentity] = useState<ProfileIdentity>({
-    firstName: sessionUser?.firstName ?? "FuseRemit",
+    firstName: sessionUser?.firstName ?? t("common.welcome"),
     lastName: sessionUser?.lastName ?? "User",
     email: sessionUser?.email ?? "",
   });
@@ -55,7 +58,7 @@ const ProfileScreen: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState("");
 
   const resetToLogin = useCallback(() => {
-    const rootNavigator = navigation.getParent()?.getParent();
+    const rootNavigator = navigation.getParent()?.getParent()?.getParent() || navigation.getParent()?.getParent();
 
     if (rootNavigator) {
       rootNavigator.dispatch(
@@ -86,7 +89,7 @@ const ProfileScreen: React.FC = () => {
       const me = await fetchCurrentUserStatus(accessToken);
 
       setIdentity({
-        firstName: me.firstName?.trim() || "FuseRemit",
+        firstName: me.firstName?.trim() || t("common.welcome"),
         lastName: me.lastName?.trim() || "User",
         email: me.email,
       });
@@ -107,7 +110,7 @@ const ProfileScreen: React.FC = () => {
     } finally {
       setIsLoadingIdentity(false);
     }
-  }, [resetToLogin]);
+  }, [resetToLogin, t]);
 
   useFocusEffect(
     useCallback(() => {
@@ -155,7 +158,7 @@ const ProfileScreen: React.FC = () => {
             resizeMode="cover"
           >
             <View style={styles.headerContent}>
-              <Text style={styles.headerTitle}>My Profile</Text>
+              <Text style={styles.headerTitle}>{t("profile.title")}</Text>
 
               <Image
                 source={require("../../../assets/profileimg.png")}
@@ -183,10 +186,9 @@ const ProfileScreen: React.FC = () => {
 
         <View style={styles.inviteCard}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.inviteTitle}>Invite Friends</Text>
+            <Text style={styles.inviteTitle}>{t("common.inviteFriends")}</Text>
             <Text style={styles.inviteSub}>
-              Invite your friends to managing their finances sorted and get $50
-              each.
+              {t("common.inviteSub")}
             </Text>
           </View>
 
@@ -197,18 +199,18 @@ const ProfileScreen: React.FC = () => {
         </View>
 
         <View style={styles.menuContainer}>
-          {menuItem("Profile", require("../../../assets/user.png"), () =>
+          {menuItem(t("common.profile"), require("../../../assets/user.png"), () =>
             navigation.navigate("ProfileSettings"),
           )}
 
           {menuItem(
-            "Security Settings",
+            t("common.security"),
             require("../../../assets/security.png"),
             () => navigation.navigate("SecuritySettings"),
           )}
 
           {menuItem(
-            "General Settings",
+            t("common.settings"),
             require("../../../assets/general.png"),
             () => navigation.navigate("GeneralSettings"),
           )}
@@ -223,7 +225,7 @@ const ProfileScreen: React.FC = () => {
             disabled={isLoggingOut}
           >
             <Text style={styles.logoutText}>
-              {isLoggingOut ? "Logging out..." : "Log Out"}
+              {isLoggingOut ? "Logging out..." : t("common.logout")}
             </Text>
 
             <Image

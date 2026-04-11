@@ -23,8 +23,12 @@ import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
+import { useLanguage } from "../../context/LanguageContext";
+
 const FuseSendScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const { t, isRTL } = useLanguage();
+  
   const [senderName, setSenderName] = useState("");
   const [senderEmail, setSenderEmail] = useState("");
 
@@ -52,56 +56,69 @@ const FuseSendScreen = () => {
           showsVerticalScrollIndicator={false}
         >
           {/* HEADER */}
-          <View style={styles.headerWrapper}>
+          <View style={[styles.headerWrapper, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
             <TouchableOpacity
-              style={styles.backBtn}
+              style={[styles.backBtn, { [isRTL ? 'right' : 'left']: responsiveWidth(-1), position: 'absolute' }]}
               onPress={() => navigation.goBack()}
             >
-              <Feather name="chevron-left" size={moderateScale(20)} />
+              <Feather name={isRTL ? "chevron-right" : "chevron-left"} size={moderateScale(20)} />
             </TouchableOpacity>
 
-            <Text style={styles.title}>SEND MONEY</Text>
+            <Text style={styles.title}>{t("sendMoney.title")}</Text>
           </View>
-          <Text style={styles.sectionTitle}>Sender Information</Text>
+          
+          <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+            {t("sendMoney.senderInfo")}
+          </Text>
 
           <Input
-            label="Full Name"
-            placeholder="Enter Full Name"
+            label={t("sendMoney.fullName")}
+            placeholder={t("sendMoney.enterName")}
             value={senderName}
             setValue={setSenderName}
+            isRTL={isRTL}
           />
 
           <Input
-            label="Email Address"
-            placeholder="Enter Email Address"
+            label={t("sendMoney.emailAddress")}
+            placeholder={t("sendMoney.enterEmail")}
             value={senderEmail}
             setValue={setSenderEmail}
+            isRTL={isRTL}
           />
 
-          <Text style={styles.sectionTitle}>Recipient details</Text>
+          <Text style={[styles.sectionTitle, { textAlign: isRTL ? 'right' : 'left' }]}>
+            {t("sendMoney.recipientDetails")}
+          </Text>
 
           <Input
-            label="Full Name"
-            placeholder="Enter Full Name"
+            label={t("sendMoney.fullName")}
+            placeholder={t("sendMoney.enterName")}
             value={recipientName}
             setValue={setRecipientName}
+            isRTL={isRTL}
           />
 
           <Input
-            label="Email Address"
-            placeholder="Enter Email Address"
+            label={t("sendMoney.emailAddress")}
+            placeholder={t("sendMoney.enterEmail")}
             value={recipientEmail}
             setValue={setRecipientEmail}
+            isRTL={isRTL}
           />
 
           <View style={{ zIndex: 10 }}>
-            <Text style={styles.label}>Recipient Country</Text>
+            <Text style={[styles.label, { textAlign: isRTL ? 'right' : 'left' }]}>
+              {t("sendMoney.recipientCountry")}
+            </Text>
 
             <TouchableOpacity
-              style={styles.inputContainer}
+              style={[styles.inputContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}
               onPress={() => setShowDropdown(!showDropdown)}
             >
-              <Text style={{ flex: 1 }}>{country || "Choose Country"}</Text>
+              <Text style={{ flex: 1, textAlign: isRTL ? 'right' : 'left' }}>
+                {country || t("sendMoney.chooseCountry")}
+              </Text>
               <Feather name="chevron-down" size={20} />
             </TouchableOpacity>
 
@@ -116,7 +133,7 @@ const FuseSendScreen = () => {
                       setShowDropdown(false);
                     }}
                   >
-                    <Text>{item}</Text>
+                    <Text style={{ textAlign: isRTL ? 'right' : 'left' }}>{item}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -124,25 +141,27 @@ const FuseSendScreen = () => {
           </View>
 
           <Input
-            label="Bank Name"
-            placeholder="Enter Bank Name"
+            label={t("sendMoney.bankName")}
+            placeholder={t("sendMoney.enterBank")}
             value={bankName}
             setValue={setBankName}
+            isRTL={isRTL}
           />
 
           <Input
-            label="Account Number"
-            placeholder="Enter Account Number"
+            label={t("sendMoney.accountNumber")}
+            placeholder={t("sendMoney.enterAccount")}
             value={accountNumber}
             setValue={setAccountNumber}
             keyboardType="numeric"
+            isRTL={isRTL}
           />
 
           <TouchableOpacity
             style={styles.button}
             onPress={() => navigation.navigate("SendMoneySecond")}
           >
-            <Text style={styles.buttonText}>Continue</Text>
+            <Text style={styles.buttonText}>{t("sendMoney.continue")}</Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -158,6 +177,7 @@ interface InputProps {
   value: string;
   setValue: (text: string) => void;
   keyboardType?: any;
+  isRTL: boolean;
 }
 
 const Input = ({
@@ -166,12 +186,13 @@ const Input = ({
   value,
   setValue,
   keyboardType,
+  isRTL,
 }: InputProps) => (
   <>
-    <Text style={styles.label}>{label}</Text>
-    <View style={styles.inputContainer}>
+    <Text style={[styles.label, { textAlign: isRTL ? 'right' : 'left' }]}>{label}</Text>
+    <View style={[styles.inputContainer, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
       <TextInput
-        style={styles.input}
+        style={[styles.input, { textAlign: isRTL ? 'right' : 'left' }]}
         placeholder={placeholder}
         placeholderTextColor="#777"
         value={value}

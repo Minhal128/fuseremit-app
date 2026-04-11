@@ -1,0 +1,38 @@
+export const es = {
+  common: {
+    home: "Inicio",
+    profile: "Perfil",
+    settings: "Ajustes",
+    security: "Seguridad",
+    logout: "Cerrar sesión",
+    welcome: "Bienvenido",
+    inviteFriends: "Invitar amigos",
+    inviteSub: "Invita a tus amigos a gestionar sus finanzas y recibe $50 cada uno.",
+    save: "Guardar cambios",
+    send: "Enviar",
+    sendFuse: "Enviar Fuse",
+    history: "Historial",
+    alerts: "Alertas",
+    cancel: "Cancelar",
+  },
+  generalSettings: {
+    title: "AJUSTES GENERALES",
+    language: "Idioma",
+    pushNotifications: "Notificaciones push",
+    pushSub: "Gestiona cómo recibes las alertas",
+    emailAlerts: "Alertas por correo",
+    emailSub: "Recibe actualizaciones de transacciones por correo",
+    privacyPolicy: "Política de privacidad",
+    privacySub: "Lee nuestros términos y condiciones",
+    selectLanguage: "Seleccionar idioma",
+    chooseLanguage: "Elige tu idioma preferido",
+    cancel: "Cancelar",
+  },
+  profile: {
+    title: "Mi Perfil",
+    personalInfo: "Información personal",
+    fullName: "Nombre completo",
+    email: "Correo electrónico",
+    phone: "Número de teléfono",
+  }
+};

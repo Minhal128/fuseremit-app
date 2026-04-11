@@ -53,6 +53,14 @@
         {
           "locationWhenInUsePermission": "Allow FuseRemit to detect your country for KYC"
         }
+      ],
+      "expo-secure-store",
+      [
+        "@stripe/stripe-react-native",
+        {
+          "merchantIdentifier": "merchant.com.busines2202.fuseremitapp",
+          "enableGooglePay": true
+        }
       ]
     ],
     "extra": {

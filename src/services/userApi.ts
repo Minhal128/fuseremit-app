@@ -15,6 +15,8 @@ export interface CurrentUserStatus {
   hasTransactionPin: boolean;
   accountTier: AccountTier;
   kycStatus: "pending" | "in_progress" | "verified" | "rejected";
+  balance: number;
+  currency: string;
 }
 
 export interface UpdateProfilePayload {
@@ -83,14 +85,30 @@ export const updateKycStatus = async (
   return res.data;
 };
 
-export const createTransactionPin = async (
-  accessToken: string,
-  pin: string,
-) => {
-  const res = await postJson<
-    { hasTransactionPin: boolean },
-    { pin: string }
-  >("/users/me/transaction-pin", { pin }, accessToken);
+export interface UserSettings {
+  twoFactorEnabled: boolean;
+  biometricEnabled: boolean;
+  preferences: {
+    language: string;
+    pushNotifications: boolean;
+    emailNotifications: boolean;
+    pushToken?: string;
+  };
+}
 
+export const fetchUserSettings = async (accessToken: string) => {
+  const res = await getJson<UserSettings>("/users/me/settings", accessToken);
+  return res.data;
+};
+
+export const updateUserSettings = async (
+  accessToken: string,
+  payload: Partial<UserSettings>,
+) => {
+  const res = await putJson<UserSettings, Partial<UserSettings>>(
+    "/users/me/settings",
+    payload,
+    accessToken,
+  );
   return res.data;
 };

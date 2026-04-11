@@ -22,6 +22,7 @@ import { moderateScale } from "react-native-size-matters";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { DatePickerModal, en, registerTranslation } from "react-native-paper-dates";
 import { registerAccount, requestEmailLoginOtp } from "../services/authApi";
+import { setSession } from "../services/session";
 
 interface Props {
   navigation: any;
@@ -117,10 +118,20 @@ const SignUpScreen = ({ navigation }: Props) => {
           password,
         });
 
-        navigation.navigate("PhoneNumberVerify", {
-          challengeId: otp.challengeId,
-          email: normalizedEmail,
-        });
+        if (otp.accessToken && otp.user) {
+          // 2FA disabled → logged in directly after registration
+          await setSession({
+            accessToken: otp.accessToken,
+            user: otp.user as any,
+          });
+          navigation.navigate("CreatePin");
+        } else {
+          // 2FA enabled → navigate to OTP verification
+          navigation.navigate("PhoneNumberVerify", {
+            challengeId: otp.challengeId,
+            email: normalizedEmail,
+          });
+        }
       } catch (error) {
         const message =
           error instanceof Error
@@ -136,10 +147,18 @@ const SignUpScreen = ({ navigation }: Props) => {
               password,
             });
 
-            navigation.navigate("PhoneNumberVerify", {
-              challengeId: otp.challengeId,
-              email: normalizedEmail,
-            });
+            if (otp.accessToken && otp.user) {
+              await setSession({
+                accessToken: otp.accessToken,
+                user: otp.user as any,
+              });
+              navigation.navigate("CreatePin");
+            } else {
+              navigation.navigate("PhoneNumberVerify", {
+                challengeId: otp.challengeId,
+                email: normalizedEmail,
+              });
+            }
 
             return;
           } catch {

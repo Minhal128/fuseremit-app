@@ -11,6 +11,7 @@ import {
   Platform,
   TextInput,
   Image,
+  ActivityIndicator,
 } from "react-native";
 
 import {
@@ -21,6 +22,8 @@ import {
 
 import { moderateScale } from "react-native-size-matters";
 import { Feather } from "@expo/vector-icons";
+import { getAccessTokenAsync } from "../../services/session";
+import { updateSecurityQuestions } from "../../services/authApi";
 
 interface Props {
   navigation: any;
@@ -104,6 +107,38 @@ const SecurityQuestionScreen = ({ navigation }: Props) => {
     </>
   );
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSave = async () => {
+    if (!q1 || !a1 || !q2 || !a2 || !q3 || !a3) {
+      alert("Please select all 3 questions and provide answers.");
+      return;
+    }
+
+    const questionsPayload = [
+      { question: q1, answer: a1 },
+      { question: q2, answer: a2 },
+      { question: q3, answer: a3 },
+    ];
+
+    setIsSubmitting(true);
+    try {
+      const token = await getAccessTokenAsync();
+      if (!token) {
+        alert("Session expired.");
+        return;
+      }
+
+      await updateSecurityQuestions(questionsPayload, token);
+      alert("Security questions updated successfully!");
+      navigation.goBack();
+    } catch (error: any) {
+      alert(error.message || "Failed to update security questions.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#F5F6FA" />
@@ -145,8 +180,16 @@ const SecurityQuestionScreen = ({ navigation }: Props) => {
           {renderDropdown(q3, setQ3, show3, setShow3, 10)}
           {renderAnswerInput(a3, setA3)}
 
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>Save Changes</Text>
+          <TouchableOpacity 
+            style={[styles.button, isSubmitting && { opacity: 0.7 }]} 
+            onPress={handleSave}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <ActivityIndicator color="#FFF" />
+            ) : (
+              <Text style={styles.buttonText}>Save Changes</Text>
+            )}
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>

@@ -17,9 +17,14 @@ import {
 import { moderateScale } from "react-native-size-matters";
 
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { biometricLogin, requestForgotPinOtp } from "../../services/authApi";
+import { getBiometricToken, setSession } from "../../services/session";
+import { Alert } from "react-native";
 
-const ChangeDevicePin = () => {
+const ChangeDevicePin = ({ navigation, route }: { navigation: any; route?: any }) => {
   const [pin, setPin] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+  const email = route?.params?.email;
 
   const handlePress = (num: string) => {
     if (pin.length < 6) {
@@ -29,6 +34,51 @@ const ChangeDevicePin = () => {
 
   const handleDelete = () => {
     setPin(pin.slice(0, -1));
+  };
+
+  const handleForgotPin = async () => {
+    if (!email) {
+      alert("Email not found. Please try logging in again.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const data = await requestForgotPinOtp({ email });
+      // Reuse PhoneNumberVerify but we might need to update it to handle PIN reset
+      // For now, navigate to it with the challenge
+      navigation.navigate("PhoneNumberVerify", {
+        challengeId: data.challengeId,
+        email,
+        purpose: "forgot_pin",
+      });
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Failed to request PIN reset");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBiometricLogin = async () => {
+    const token = await getBiometricToken();
+    if (!token) {
+      alert("Biometric login not enabled on this device.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const data = await biometricLogin({ biometricToken: token });
+      await setSession({
+        accessToken: data.accessToken,
+        user: data.user,
+      });
+      navigation.navigate("AppServiceBottomNavigation");
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Biometric login failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const renderDot = (index: number) => {
@@ -105,11 +155,15 @@ const ChangeDevicePin = () => {
         </View>
 
         <View style={styles.row}>
-          <TouchableOpacity style={styles.key}>
+          <TouchableOpacity 
+            style={styles.key}
+            onPress={handleBiometricLogin}
+            disabled={loading}
+          >
             <MaterialIcons
               name="fingerprint"
               size={moderateScale(26)}
-              color="#000"
+              color={loading ? "#ccc" : "#000"}
             />
           </TouchableOpacity>
 
@@ -126,9 +180,13 @@ const ChangeDevicePin = () => {
       </View>
 
       <View style={styles.footer}>
-        <Text style={styles.forgot}>Forgot your PIN?</Text>
+        <TouchableOpacity onPress={handleForgotPin} disabled={loading}>
+          <Text style={styles.forgot}>Forgot your PIN?</Text>
+        </TouchableOpacity>
 
-        <Text style={styles.logout}>Logout</Text>
+        <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+          <Text style={styles.logout}>Logout</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );

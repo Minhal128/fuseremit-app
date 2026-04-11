@@ -16,8 +16,11 @@ import {
   responsiveFontSize,
 } from "react-native-responsive-dimensions";
 import { moderateScale, scale } from "react-native-size-matters";
-import { Feather } from "@expo/vector-icons";
-import { requestEmailLoginOtp } from "../services/authApi";
+import { Feather, Ionicons } from "@expo/vector-icons";
+import { biometricLogin, requestEmailLoginOtp } from "../services/authApi";
+import { getBiometricToken, hasBiometricEnabled, setSession } from "../services/session";
+import * as LocalAuthentication from "expo-local-authentication";
+import React, { useEffect } from "react";
 
 interface Props {
   navigation: any;
@@ -28,6 +31,15 @@ const LoginScreen = ({ navigation }: Props) => {
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [isBiometricAvailable, setIsBiometricAvailable] = useState(false);
+
+  useEffect(() => {
+    const checkBiometric = async () => {
+      const enabled = await hasBiometricEnabled();
+      setIsBiometricAvailable(enabled);
+    };
+    checkBiometric();
+  }, []);
 
   const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   const isPasswordFilled = password.length >= 8;
@@ -45,10 +57,26 @@ const LoginScreen = ({ navigation }: Props) => {
         password,
       });
 
-      navigation.navigate("PhoneNumberVerify", {
-        challengeId: data.challengeId,
-        email: email.trim().toLowerCase(),
-      });
+      if (data.accessToken && data.user) {
+        // Direct login if 2FA is disabled
+        await setSession({
+          accessToken: data.accessToken,
+          user: {
+            id: data.user.id,
+            firstName: data.user.firstName,
+            lastName: data.user.lastName,
+            email: data.user.email,
+            // mapping other fields if necessary
+          } as any,
+        });
+        navigation.navigate("AppServiceBottomNavigation");
+      } else {
+        // 2FA flow
+        navigation.navigate("PhoneNumberVerify", {
+          challengeId: data.challengeId,
+          email: email.trim().toLowerCase(),
+        });
+      }
     } catch (error) {
       const message =
         error instanceof Error
@@ -57,6 +85,35 @@ const LoginScreen = ({ navigation }: Props) => {
       setErrorMessage(message);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleBiometricLogin = async () => {
+    const token = await getBiometricToken();
+    if (!token) return;
+
+    const result = await LocalAuthentication.authenticateAsync({
+      promptMessage: "Sign in with Biometrics",
+    });
+
+    if (result.success) {
+      try {
+        setIsSubmitting(true);
+        setErrorMessage("");
+        
+        const data = await biometricLogin({ biometricToken: token });
+        
+        await setSession({
+          accessToken: data.accessToken,
+          user: data.user,
+        });
+
+        navigation.navigate("AppServiceBottomNavigation");
+      } catch (error) {
+        setErrorMessage(error instanceof Error ? error.message : "Biometric login failed");
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -149,6 +206,17 @@ const LoginScreen = ({ navigation }: Props) => {
             </Text>
           )}
         </TouchableOpacity>
+
+        {isBiometricAvailable && (
+          <TouchableOpacity
+            style={styles.biometricButton}
+            onPress={handleBiometricLogin}
+            disabled={isSubmitting}
+          >
+            <Ionicons name="finger-print" size={moderateScale(32)} color="#0B3963" />
+            <Text style={styles.biometricText}>Login with Biometrics</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </KeyboardAvoidingView>
   );
@@ -260,5 +328,18 @@ const styles = StyleSheet.create({
 
   buttonTextActive: {
     color: "#fff",
+  },
+
+  biometricButton: {
+    marginTop: responsiveHeight(4),
+    alignSelf: "center",
+    alignItems: "center",
+  },
+
+  biometricText: {
+    marginTop: moderateScale(5),
+    fontSize: responsiveFontSize(1.4),
+    color: "#0B3963",
+    fontFamily: "Manrope-SemiBold",
   },
 });

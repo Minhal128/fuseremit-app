@@ -1,4 +1,4 @@
-import { postJson } from "./api";
+import { postJson, patchJson } from "./api";
 
 export interface RegisterRequest {
   firstName: string;
@@ -24,8 +24,18 @@ export interface LoginOtpRequest {
 }
 
 export interface LoginOtpResponse {
-  challengeId: string;
-  expiresAt: string;
+  challengeId?: string;
+  expiresAt?: string;
+  accessToken?: string;
+  refreshToken?: string;
+  user?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phoneNumber: string;
+    accountTier: string;
+  };
 }
 
 export interface VerifyOtpRequest {
@@ -104,5 +114,118 @@ export const logoutAccount = async (accessToken?: string) => {
     accessToken,
   );
 
+  return res.data;
+};
+
+export interface ForgotPinRequest {
+  email: string;
+}
+
+export interface ForgotPinVerifyRequest {
+  challengeId: string;
+  otp: string;
+  newPin: string;
+}
+
+export interface BiometricSetupResponse {
+  biometricToken: string;
+}
+
+export interface BiometricLoginRequest {
+  biometricToken: string;
+}
+
+export const requestForgotPinOtp = async (payload: ForgotPinRequest) => {
+  const res = await postJson<{ challengeId: string; expiresAt: string }, ForgotPinRequest>(
+    "/auth/pin/reset/request",
+    payload,
+  );
+  return res.data;
+};
+
+export const verifyForgotPinOtp = async (payload: ForgotPinVerifyRequest) => {
+  const res = await postJson<{ success: boolean }, ForgotPinVerifyRequest>(
+    "/auth/pin/reset/verify",
+    payload,
+  );
+  return res.data;
+};
+
+export const setupBiometric = async (payload: { pin: string }, accessToken: string) => {
+  const res = await postJson<BiometricSetupResponse, { pin: string }>(
+    "/auth/biometric/setup",
+    payload,
+    accessToken,
+  );
+  return res.data;
+};
+
+export const biometricLogin = async (payload: BiometricLoginRequest) => {
+  const res = await postJson<VerifyOtpResponse, BiometricLoginRequest>(
+    "/auth/biometric/login",
+    payload,
+  );
+  return res.data;
+};
+
+export interface ProfileUpdateData {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phoneNumber?: string;
+}
+
+export interface ProfileUpdateResponse {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber: string;
+  accountTier: string;
+}
+
+export const updateProfile = async (
+  payload: ProfileUpdateData,
+  token: string
+): Promise<ProfileUpdateResponse> => {
+  const res = await patchJson<ProfileUpdateResponse, ProfileUpdateData>("/auth/profile", payload, token);
+  return res.data;
+};
+
+export const toggleTwoFactor = async (
+  enabled: boolean,
+  token: string
+): Promise<{ enabled: boolean }> => {
+  const res = await patchJson<{ enabled: boolean }, { enabled: boolean }>("/auth/2fa", { enabled }, token);
+  return res.data;
+};
+
+export interface SecurityQuestion {
+  question: string;
+  answer: string;
+}
+
+export const updateSecurityQuestions = async (
+  questions: SecurityQuestion[],
+  token: string
+): Promise<{ success: boolean }> => {
+  const res = await patchJson<{ success: boolean }, { questions: SecurityQuestion[] }>(
+    "/auth/security-questions",
+    { questions },
+    token
+  );
+  return res.data;
+};
+
+export interface ChangePasswordPayload {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export const changePassword = async (
+  payload: ChangePasswordPayload,
+  token: string
+): Promise<{ changed: boolean }> => {
+  const res = await postJson<{ changed: boolean }, ChangePasswordPayload>("/auth/password/change", payload, token);
   return res.data;
 };

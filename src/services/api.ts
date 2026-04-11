@@ -108,3 +108,24 @@ export const putJson = async <
 
   return parseJsonResponse<TResponse>(response, path);
 };
+
+export const patchJson = async <
+  TResponse,
+  TPayload extends object = Record<string, unknown>,
+>(
+  path: string,
+  payload: TPayload,
+  accessToken?: string,
+): Promise<ApiEnvelope<TResponse>> => {
+  if (__DEV__) {
+    console.log(`[API] PATCH ${API_BASE_URL}${path}`);
+  }
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: "PATCH",
+    headers: buildHeaders(accessToken),
+    body: JSON.stringify(payload),
+  });
+
+  return parseJsonResponse<TResponse>(response, path);
+};
