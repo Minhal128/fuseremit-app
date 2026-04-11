@@ -16,14 +16,5 @@ export default function App() {
   if (!fontsLoaded) {
     return null;
   }
-
-  return (
-    <LanguageProvider>
-      <PaperProvider>
-        <StripeWrapper>
-          <AppNavigator />
-        </StripeWrapper>
-      </PaperProvider>
-    </LanguageProvider>
-  );
+  return <AppNavigator />;
 }

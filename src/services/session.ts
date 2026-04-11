@@ -1,12 +1,10 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as SecureStore from "expo-secure-store";
 
 export interface SessionUser {
   id: string;
   firstName?: string;
   lastName?: string;
   email: string;
-  phoneNumber?: string;
   hasPin: boolean;
 }
 
@@ -22,7 +20,6 @@ const state: SessionState = {
 
 const ACCESS_TOKEN_KEY = "@fuseremit/accessToken";
 const SESSION_USER_KEY = "@fuseremit/sessionUser";
-const BIOMETRIC_TOKEN_KEY = "@fuseremit/biometricToken";
 
 const setSessionCache = (params: { accessToken: string; user: SessionUser }) => {
   state.accessToken = params.accessToken;
@@ -98,17 +95,4 @@ export const markPinCreated = () => {
   };
 
   void AsyncStorage.setItem(SESSION_USER_KEY, JSON.stringify(state.user));
-};
-
-export const setBiometricToken = async (token: string) => {
-  await SecureStore.setItemAsync(BIOMETRIC_TOKEN_KEY, token);
-};
-
-export const getBiometricToken = async (): Promise<string | null> => {
-  return await SecureStore.getItemAsync(BIOMETRIC_TOKEN_KEY);
-};
-
-export const hasBiometricEnabled = async (): Promise<boolean> => {
-  const token = await getBiometricToken();
-  return !!token;
 };

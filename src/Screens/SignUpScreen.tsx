@@ -20,9 +20,7 @@ import {
 
 import { moderateScale } from "react-native-size-matters";
 import { Feather, Ionicons } from "@expo/vector-icons";
-import { DatePickerModal, en, registerTranslation } from "react-native-paper-dates";
-import { registerAccount, requestEmailLoginOtp } from "../services/authApi";
-import { setSession } from "../services/session";
+import { Calendar } from "react-native-calendars";
 
 interface Props {
   navigation: any;
@@ -64,113 +62,32 @@ const SignUpScreen = ({ navigation }: Props) => {
   const borderColor = (value: unknown) =>
     submitted && !value ? "#FB002E" : "#ccc";
 
-  const formatDate = (value: Date | undefined) => {
-    if (!value) return "DD/MM/YYYY";
+  const handleDateTyping = (text: string) => {
+    const numbers = text.replace(/\D/g, "");
 
-    const day = value.getDate().toString().padStart(2, "0");
-    const month = (value.getMonth() + 1).toString().padStart(2, "0");
-    const year = value.getFullYear();
+    let formatted = numbers;
 
-    return `${day}/${month}/${year}`;
-  };
+    if (numbers.length > 2 && numbers.length <= 4) {
+      formatted = numbers.slice(0, 2) + "/" + numbers.slice(2);
+    } else if (numbers.length > 4) {
+      formatted =
+        numbers.slice(0, 2) +
+        "/" +
+        numbers.slice(2, 4) +
+        "/" +
+        numbers.slice(4, 8);
+    }
 
-  const onConfirmDatePicker = (params: { date: Date | undefined }) => {
-    setShowCalendar(false);
-    setDate(params.date);
-  };
+    setDateInput(formatted);
 
-  const handleContinue = () => {
-    void (async () => {
-      setSubmitted(true);
+    if (numbers.length === 8) {
+      const day = numbers.slice(0, 2);
+      const month = numbers.slice(2, 4);
+      const year = numbers.slice(4, 8);
 
-      if (!isValid || !date || isSubmitting) {
-        return;
-      }
-
-      try {
-        setErrorMessage("");
-        setIsSubmitting(true);
-
-        const normalizedEmail = email.trim().toLowerCase();
-        const dateOfBirth = date.toISOString().split("T")[0];
-
-        const registration = await registerAccount({
-          firstName: first.trim(),
-          lastName: last.trim(),
-          email: normalizedEmail,
-          password,
-          gender: gender as "Male" | "Female" | "Other",
-          dateOfBirth,
-        });
-
-        if (__DEV__) {
-          console.log(
-            `[SIGNUP] userId=${registration.id} persistenceVerified=${registration.persistenceVerified}`,
-          );
-        }
-
-        if (!registration.persistenceVerified) {
-          throw new Error("Signup persistence check failed");
-        }
-
-        const otp = await requestEmailLoginOtp({
-          email: normalizedEmail,
-          password,
-        });
-
-        if (otp.accessToken && otp.user) {
-          // 2FA disabled → logged in directly after registration
-          await setSession({
-            accessToken: otp.accessToken,
-            user: otp.user as any,
-          });
-          navigation.navigate("CreatePin");
-        } else {
-          // 2FA enabled → navigate to OTP verification
-          navigation.navigate("PhoneNumberVerify", {
-            challengeId: otp.challengeId,
-            email: normalizedEmail,
-          });
-        }
-      } catch (error) {
-        const message =
-          error instanceof Error
-            ? error.message
-            : "Unable to create account right now.";
-
-        if (message.toLowerCase().includes("already exists")) {
-          try {
-            const normalizedEmail = email.trim().toLowerCase();
-
-            const otp = await requestEmailLoginOtp({
-              email: normalizedEmail,
-              password,
-            });
-
-            if (otp.accessToken && otp.user) {
-              await setSession({
-                accessToken: otp.accessToken,
-                user: otp.user as any,
-              });
-              navigation.navigate("CreatePin");
-            } else {
-              navigation.navigate("PhoneNumberVerify", {
-                challengeId: otp.challengeId,
-                email: normalizedEmail,
-              });
-            }
-
-            return;
-          } catch {
-            // Fall through to show the original registration error.
-          }
-        }
-
-        setErrorMessage(message);
-      } finally {
-        setIsSubmitting(false);
-      }
-    })();
+      const isoDate = `${year}-${month}-${day}`;
+      setDate(isoDate);
+    }
   };
 
   return (
