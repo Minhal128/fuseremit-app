@@ -27,17 +27,129 @@ import {
 } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
+import { logoutAccount } from "../../services/authApi";
+import { clearManualKycDraft } from "../../services/manualKycDraft";
+import {
+  clearSession,
+  getAccessTokenAsync,
+  getSessionUser,
+} from "../../services/session";
+import { fetchCurrentUserStatus } from "../../services/userApi";
+import { useLanguage } from "../../context/LanguageContext";
+
+interface ProfileIdentity {
+  firstName: string;
+  lastName: string;
+  email: string;
+}
+
 type RootStackParamList = {
   ProfileSettings: undefined;
   SecuritySettings: undefined;
   GeneralSettings: undefined;
   MayaAI: undefined;
-  LoginScreen: undefined;
+  Login: undefined;
 };
 
 const ProfileScreen: React.FC = () => {
-  const navigation =
-    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { t } = useLanguage();
+
+  const sessionUser = getSessionUser();
+  const [identity, setIdentity] = useState<ProfileIdentity>({
+    firstName: sessionUser?.firstName ?? "FuseRemit",
+    lastName: sessionUser?.lastName ?? "User",
+    email: sessionUser?.email ?? "",
+  });
+  const [isLoadingIdentity, setIsLoadingIdentity] = useState(true);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const resetToLogin = useCallback(() => {
+    const rootNavigator = navigation.getParent()?.getParent();
+
+    if (rootNavigator) {
+      rootNavigator.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: "Login" }],
+        }),
+      );
+      return;
+    }
+
+    navigation.navigate("Login" as any);
+  }, [navigation]);
+
+  const loadProfileIdentity = useCallback(async () => {
+    try {
+      setErrorMessage("");
+      setIsLoadingIdentity(true);
+
+      const accessToken = await getAccessTokenAsync();
+
+      if (!accessToken) {
+        await clearSession();
+        resetToLogin();
+        return;
+      }
+
+      const me = await fetchCurrentUserStatus(accessToken);
+
+      setIdentity({
+        firstName: me.firstName?.trim() || "FuseRemit",
+        lastName: me.lastName?.trim() || "User",
+        email: me.email,
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Unable to load profile details.";
+
+      const normalized = message.toLowerCase();
+      if (normalized.includes("token") || normalized.includes("auth")) {
+        await Promise.all([clearSession(), clearManualKycDraft()]);
+        resetToLogin();
+        return;
+      }
+
+      setErrorMessage(message);
+    } finally {
+      setIsLoadingIdentity(false);
+    }
+  }, [resetToLogin]);
+
+  useFocusEffect(
+    useCallback(() => {
+      void loadProfileIdentity();
+    }, [loadProfileIdentity]),
+  );
+
+  const handleLogout = useCallback(() => {
+    void (async () => {
+      if (isLoggingOut) return;
+
+      try {
+        setErrorMessage("");
+        setIsLoggingOut(true);
+
+        const accessToken = await getAccessTokenAsync();
+        await logoutAccount(accessToken ?? undefined);
+      } catch {
+        // Logout should still proceed locally even if network logout fails.
+      } finally {
+        await Promise.all([clearSession(), clearManualKycDraft()]);
+        setIsLoggingOut(false);
+        resetToLogin();
+      }
+    })();
+  }, [isLoggingOut, resetToLogin]);
+
+  const fullName = useMemo(
+    () => `${identity.firstName} ${identity.lastName}`.trim(),
+    [identity.firstName, identity.lastName],
+  );
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#F4F5F7" }}>
@@ -120,7 +232,9 @@ const ProfileScreen: React.FC = () => {
             onPress={handleLogout}
             disabled={isLoggingOut}
           >
-            <Text style={styles.logoutText}>Log Out</Text>
+            <Text style={styles.logoutText}>
+              {isLoggingOut ? "Logging out..." : t("common.logout")}
+            </Text>
 
             <Image
               source={require("../../../assets/logout.png")}

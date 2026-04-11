@@ -53,7 +53,7 @@ const parseJsonResponse = async <TResponse>(
 
 export const postJson = async <
   TResponse,
-  TPayload extends object = Record<string, unknown>,
+  TPayload extends any = any,
 >(
   path: string,
   payload: TPayload,
@@ -65,19 +65,67 @@ export const postJson = async <
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-    },
+    headers: buildHeaders(accessToken),
     body: JSON.stringify(payload),
   });
 
-  const json = (await response.json()) as ApiEnvelope<TResponse>;
+  return parseJsonResponse<TResponse>(response, path);
+};
 
-  if (!response.ok || !json.success) {
-    const message = json.error?.message || "Request failed";
-    throw new Error(message);
+export const getJson = async <TResponse>(
+  path: string,
+  accessToken?: string,
+): Promise<ApiEnvelope<TResponse>> => {
+  if (__DEV__) {
+    console.log(`[API] GET ${API_BASE_URL}${path}`);
   }
 
-  return json;
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: "GET",
+    headers: buildHeaders(accessToken),
+  });
+
+  return parseJsonResponse<TResponse>(response, path);
+};
+
+export const putJson = async <
+  TResponse,
+  TPayload extends any = any,
+>(
+  path: string,
+  payload: TPayload,
+  accessToken?: string,
+): Promise<ApiEnvelope<TResponse>> => {
+  if (__DEV__) {
+    console.log(`[API] PUT ${API_BASE_URL}${path}`);
+  }
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: "PUT",
+    headers: buildHeaders(accessToken),
+    body: JSON.stringify(payload),
+  });
+
+  return parseJsonResponse<TResponse>(response, path);
+};
+
+export const patchJson = async <
+  TResponse,
+  TPayload extends any = any,
+>(
+  path: string,
+  payload: TPayload,
+  accessToken?: string,
+): Promise<ApiEnvelope<TResponse>> => {
+  if (__DEV__) {
+    console.log(`[API] PATCH ${API_BASE_URL}${path}`);
+  }
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: "PATCH",
+    headers: buildHeaders(accessToken),
+    body: JSON.stringify(payload),
+  });
+
+  return parseJsonResponse<TResponse>(response, path);
 };

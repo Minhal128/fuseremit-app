@@ -35,7 +35,7 @@ type RootStackParamList = {
 import { useLanguage } from "../../context/LanguageContext";
 
 const HistoryScreen: React.FC = () => {
-  const navigation = useNavigation<NavigationProp>();
+  const navigation = useNavigation<NativeStackNavigationProp<any>>();
   const { t, isRTL } = useLanguage();
 
   const todayTransactions: Transaction[] = [

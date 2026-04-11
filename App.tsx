@@ -13,8 +13,13 @@ export default function App() {
     "KronaOne-Regular": require("./assets/fonts/KronaOne-Regular.ttf"),
   });
 
-  if (!fontsLoaded) {
-    return null;
-  }
-  return <AppNavigator />;
+  return (
+    <LanguageProvider>
+      <PaperProvider>
+        <StripeWrapper>
+          <AppNavigator />
+        </StripeWrapper>
+      </PaperProvider>
+    </LanguageProvider>
+  );
 }

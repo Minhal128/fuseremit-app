@@ -28,9 +28,95 @@ import {
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import ButtonsScreen from "./Home/ButtonsScreen";
 import RecentTransactions from "./Home/RecentTransactions";
+import { clearSession, getAccessTokenAsync } from "../../services/session";
+import { fetchCurrentUserStatus } from "../../services/userApi";
+import { useLanguage } from "../../context/LanguageContext";
+
+interface DashboardIdentityState {
+  firstName: string;
+  accountTier: "Classic" | "Premium";
+  kycStatus: "pending" | "in_progress" | "verified" | "rejected";
+  balance: number;
+}
 
 const HomeScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const { t, isRTL } = useLanguage();
+  const [identity, setIdentity] = useState<DashboardIdentityState | null>(null);
+  const [isLoadingIdentity, setIsLoadingIdentity] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const redirectToLogin = useCallback(() => {
+    const rootNavigator = navigation.getParent()?.getParent();
+
+    if (rootNavigator) {
+      rootNavigator.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: "Login" }],
+        }),
+      );
+
+      return;
+    }
+
+    navigation.navigate("Login");
+  }, [navigation]);
+
+  const loadDashboardIdentity = useCallback(async () => {
+    try {
+      setErrorMessage("");
+      setIsLoadingIdentity(true);
+
+      const accessToken = await getAccessTokenAsync();
+
+      if (!accessToken) {
+        redirectToLogin();
+        return;
+      }
+
+      const me = await fetchCurrentUserStatus(accessToken);
+
+      setIdentity({
+        firstName: me.firstName?.trim() || "there",
+        accountTier: me.accountTier,
+        kycStatus: me.kycStatus,
+        balance: me.balance ?? 0,
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Unable to sync dashboard right now.";
+
+      const normalized = message.toLowerCase();
+      if (normalized.includes("token") || normalized.includes("auth")) {
+        await clearSession();
+        redirectToLogin();
+        return;
+      }
+
+      setErrorMessage(message);
+    } finally {
+      setIsLoadingIdentity(false);
+    }
+  }, [redirectToLogin]);
+
+  useFocusEffect(
+    useCallback(() => {
+      void loadDashboardIdentity();
+    }, [loadDashboardIdentity]),
+  );
+
+  const kycLabel = useMemo(() => {
+    if (!identity) return "Pending";
+
+    if (identity.kycStatus === "verified") return "Verified";
+    if (identity.kycStatus === "in_progress") return "In Review";
+    if (identity.kycStatus === "rejected") return "Rejected";
+
+    return "Pending";
+  }, [identity]);
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -50,16 +136,32 @@ const HomeScreen: React.FC = () => {
               <View style={styles.topSection}>
                 <View>
                   <Text style={styles.balanceLabel}>Total Balance</Text>
-                  <Text style={styles.balanceAmount}>$2,450.75</Text>
+                  <Text style={styles.balanceAmount}>
+                    ${identity?.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) ?? "0.00"}
+                  </Text>
+
+                  {isLoadingIdentity ? (
+                    <View style={styles.identityLoadingRow}>
+                      <ActivityIndicator size="small" color="#FFFFFF" />
+                      <Text style={styles.identityLoadingText}>Syncing profile...</Text>
+                    </View>
+                  ) : (
+                    <Text style={styles.identityText}>
+                      {`Hi ${identity?.firstName ?? "there"} • ${identity?.accountTier ?? "Classic"} • KYC ${kycLabel}`}
+                    </Text>
+                  )}
+
+                  {errorMessage ? (
+                    <Text style={styles.identityErrorText}>{errorMessage}</Text>
+                  ) : null}
                 </View>
 
                 <TouchableOpacity onPress={() => navigation.navigate("MayaAI")}>
-                  <View style={styles.robotCircle}>
-                    <Image
-                      source={require("../../../assets/robot.png")}
-                      style={styles.robotImage}
-                    />
-                  </View>
+                  <Image
+                    source={require("../../../assets/maya.png")}
+                    style={styles.mayaIcon}
+                    resizeMode="contain"
+                  />
                 </TouchableOpacity>
               </View>
 
@@ -111,21 +213,23 @@ const HomeScreen: React.FC = () => {
               <View style={styles.card}>
                 <Text style={[styles.cardTitle, { textAlign: isRTL ? 'right' : 'left' }]}>{t("home.aiInsights")}</Text>
 
-                <Text style={styles.cardSub}>
-                  Maya analyzed your financial patterns
+                <Text style={[styles.cardSub, { textAlign: isRTL ? 'right' : 'left' }]}>
+                  {identity
+                    ? `${identity.firstName} ${t("home.insightsSub")}`
+                    : t("home.insightsSub")}
                 </Text>
 
-                <View style={styles.bulletRow}>
-                  <Text style={styles.bullet}>•</Text>
-                  <Text style={styles.bulletText}>
-                    FUSE optimization saved you $45 this month on transfer fees
+                <View style={[styles.bulletRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                  <Text style={[styles.bullet, { [isRTL ? 'marginLeft' : 'marginRight']: moderateScale(6) }]}>•</Text>
+                  <Text style={[styles.bulletText, { textAlign: isRTL ? 'right' : 'left' }]}>
+                    Tier status: {identity?.accountTier ?? "Classic"}. Keep transacting to unlock better transfer benefits.
                   </Text>
                 </View>
 
-                <View style={styles.bulletRow}>
-                  <Text style={styles.bullet}>•</Text>
-                  <Text style={styles.bulletText}>
-                    No suspicious activity detected in your recent transactions
+                <View style={[styles.bulletRow, { flexDirection: isRTL ? 'row-reverse' : 'row' }]}>
+                  <Text style={[styles.bullet, { [isRTL ? 'marginLeft' : 'marginRight']: moderateScale(6) }]}>•</Text>
+                  <Text style={[styles.bulletText, { textAlign: isRTL ? 'right' : 'left' }]}>
+                    KYC status: {kycLabel}. Your dashboard is synced securely with your backend profile.
                   </Text>
                 </View>
               </View>
@@ -209,6 +313,10 @@ const styles = StyleSheet.create({
     width: responsiveWidth(7),
     height: responsiveWidth(7),
     resizeMode: "contain",
+  },
+  mayaIcon: {
+    width: responsiveWidth(12),
+    height: responsiveWidth(12),
   },
 
   buttonRow: {

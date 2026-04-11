@@ -20,6 +20,9 @@ import {
 
 import { moderateScale } from "react-native-size-matters";
 import { Feather, Ionicons } from "@expo/vector-icons";
+import { DatePickerModal, en, registerTranslation } from "react-native-paper-dates";
+import { registerAccount, requestEmailLoginOtp } from "../services/authApi";
+import { setSession } from "../services/session";
 import { Calendar } from "react-native-calendars";
 
 interface Props {
@@ -38,6 +41,7 @@ const SignUpScreen = ({ navigation }: Props) => {
   const [showDropdown, setShowDropdown] = useState(false);
 
   const [date, setDate] = useState<Date | undefined>(undefined);
+  const [dateInput, setDateInput] = useState("");
   const [showCalendar, setShowCalendar] = useState(false);
 
   const [checked, setChecked] = useState(false);
@@ -86,8 +90,120 @@ const SignUpScreen = ({ navigation }: Props) => {
       const year = numbers.slice(4, 8);
 
       const isoDate = `${year}-${month}-${day}`;
-      setDate(isoDate);
+      setDate(new Date(isoDate));
     }
+  };
+
+  const formatDate = (value: Date | undefined) => {
+    if (!value) return "DD/MM/YYYY";
+
+    const day = value.getDate().toString().padStart(2, "0");
+    const month = (value.getMonth() + 1).toString().padStart(2, "0");
+    const year = value.getFullYear();
+
+    return `${day}/${month}/${year}`;
+  };
+
+  const onConfirmDatePicker = (params: { date: Date | undefined }) => {
+    setShowCalendar(false);
+    setDate(params.date);
+    if (params.date) {
+      setDateInput(formatDate(params.date));
+    }
+  };
+
+  const handleContinue = () => {
+    void (async () => {
+      setSubmitted(true);
+
+      if (!isValid || !date || isSubmitting) {
+        return;
+      }
+
+      try {
+        setErrorMessage("");
+        setIsSubmitting(true);
+
+        const normalizedEmail = email.trim().toLowerCase();
+        const dateOfBirth = date.toISOString().split("T")[0];
+
+        const registration = await registerAccount({
+          firstName: first.trim(),
+          lastName: last.trim(),
+          email: normalizedEmail,
+          password,
+          gender: gender as "Male" | "Female" | "Other",
+          dateOfBirth,
+        });
+
+        if (__DEV__) {
+          console.log(
+            `[SIGNUP] userId=${registration.id} persistenceVerified=${registration.persistenceVerified}`,
+          );
+        }
+
+        if (!registration.persistenceVerified) {
+          throw new Error("Signup persistence check failed");
+        }
+
+        const otp = await requestEmailLoginOtp({
+          email: normalizedEmail,
+          password,
+        });
+
+        if (otp.accessToken && otp.user) {
+          // 2FA disabled → logged in directly after registration
+          await setSession({
+            accessToken: otp.accessToken,
+            user: otp.user as any,
+          });
+          navigation.navigate("CreatePin");
+        } else {
+          // 2FA enabled → navigate to OTP verification
+          navigation.navigate("PhoneNumberVerify", {
+            challengeId: otp.challengeId,
+            email: normalizedEmail,
+          });
+        }
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Unable to create account right now.";
+
+        if (message.toLowerCase().includes("already exists")) {
+          try {
+            const normalizedEmail = email.trim().toLowerCase();
+
+            const otp = await requestEmailLoginOtp({
+              email: normalizedEmail,
+              password,
+            });
+
+            if (otp.accessToken && otp.user) {
+              await setSession({
+                accessToken: otp.accessToken,
+                user: otp.user as any,
+              });
+              navigation.navigate("CreatePin");
+            } else {
+              navigation.navigate("PhoneNumberVerify", {
+                challengeId: otp.challengeId,
+                email: normalizedEmail,
+              });
+            }
+
+            return;
+          } catch {
+            // Fall through to show the original registration error.
+          }
+        }
+
+        setErrorMessage(message);
+      } finally {
+        setIsSubmitting(false);
+      }
+    })();
   };
 
   return (
