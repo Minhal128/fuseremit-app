@@ -1,20 +1,19 @@
 import { Platform } from "react-native";
 
-const LOCAL_ANDROID = "http://10.0.2.2:4000/api/v1";
-const LOCAL_OTHER = "http://localhost:4000/api/v1";
-
+const PRODUCTION_URL = "https://fuseremit-backend.onrender.com/api/v1";
 const envBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL?.trim();
 
 const getBaseUrl = () => {
   if (envBaseUrl && envBaseUrl.length > 0) {
-    // If we're on Android and the URL is localhost, swap it to 10.0.2.2
+    // If we're on Android and the URL is localhost, swap it to 10.0.2.2 for convenience
     if (Platform.OS === "android" && envBaseUrl.includes("localhost")) {
       return envBaseUrl.replace("localhost", "10.0.2.2");
     }
     return envBaseUrl;
   }
 
-  return Platform.OS === "android" ? LOCAL_ANDROID : LOCAL_OTHER;
+  // Fallback to production URL for all platforms by default
+  return PRODUCTION_URL;
 };
 
 export const API_BASE_URL = getBaseUrl();
