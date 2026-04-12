@@ -26,7 +26,9 @@
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO",
         "android.permission.ACCESS_FINE_LOCATION",
-        "android.permission.ACCESS_COARSE_LOCATION"
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
       ],
       "package": "com.busines2202.fuseremitapp"
     },
@@ -51,7 +53,7 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "24b82352-0e07-456f-9f17-6e5ea381b03c"
+        "projectId": "c8479801-03b9-4e37-a813-2afaecc3b836"
       }
     }
   }
