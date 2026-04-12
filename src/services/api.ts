@@ -5,12 +5,19 @@ const LOCAL_OTHER = "http://localhost:4000/api/v1";
 
 const envBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL?.trim();
 
-export const API_BASE_URL =
-  envBaseUrl && envBaseUrl.length > 0
-    ? envBaseUrl
-    : Platform.OS === "android"
-      ? LOCAL_ANDROID
-      : LOCAL_OTHER;
+const getBaseUrl = () => {
+  if (envBaseUrl && envBaseUrl.length > 0) {
+    // If we're on Android and the URL is localhost, swap it to 10.0.2.2
+    if (Platform.OS === "android" && envBaseUrl.includes("localhost")) {
+      return envBaseUrl.replace("localhost", "10.0.2.2");
+    }
+    return envBaseUrl;
+  }
+
+  return Platform.OS === "android" ? LOCAL_ANDROID : LOCAL_OTHER;
+};
+
+export const API_BASE_URL = getBaseUrl();
 
 export interface ApiEnvelope<T> {
   success: boolean;

@@ -10,12 +10,14 @@ export interface RegisterRequest {
 }
 
 export interface RegisterResponse {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  accountTier: "Classic" | "Premium";
+  id?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  accountTier?: "Classic" | "Premium";
   persistenceVerified: boolean;
+  challengeId?: string;
+  unverifiedExisting?: boolean;
 }
 
 export interface LoginOtpRequest {

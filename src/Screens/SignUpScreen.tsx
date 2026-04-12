@@ -136,10 +136,17 @@ const SignUpScreen = ({ navigation }: Props) => {
           dateOfBirth,
         });
 
-        if (__DEV__) {
-          console.log(
-            `[SIGNUP] userId=${registration.id} persistenceVerified=${registration.persistenceVerified}`,
-          );
+        if (registration.unverifiedExisting && registration.challengeId) {
+          if (__DEV__) {
+            console.log(
+              `[SIGNUP] Unverified existing account found. redirectId=${registration.challengeId}`,
+            );
+          }
+          navigation.navigate("PhoneNumberVerify", {
+            challengeId: registration.challengeId,
+            email: normalizedEmail,
+          });
+          return;
         }
 
         if (!registration.persistenceVerified) {
