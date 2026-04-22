@@ -22,6 +22,7 @@ import { moderateScale } from "react-native-size-matters";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import Fonts from "../../constants/Fonts";
 import { getAccessTokenAsync, getSessionUser, setSession } from "../../services/session";
 import { updateProfile } from "../../services/authApi";
 import { Alert } from "react-native";
@@ -230,7 +231,7 @@ const styles = StyleSheet.create({
   screenTitle: {
     textAlign: "center",
     fontSize: responsiveFontSize(2.2),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     marginTop: responsiveHeight(1.5),
   },
 
@@ -265,7 +266,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: responsiveFontSize(1.4),
     marginBottom: responsiveHeight(0.5),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   inputContainer: {
@@ -282,7 +283,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: responsiveFontSize(1.5),
     color: "#000",
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     paddingVertical: 0,
     height: "100%",
   },
@@ -304,6 +305,6 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: "#FFF",
     fontSize: responsiveFontSize(1.8),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 });

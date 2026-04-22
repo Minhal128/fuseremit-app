@@ -19,6 +19,7 @@ import { moderateScale } from "react-native-size-matters";
 import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import Fonts from "../../../constants/Fonts";
 
 const SendMoneyDetailScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
@@ -106,7 +107,7 @@ const styles = StyleSheet.create({
 
   title: {
     fontSize: responsiveFontSize(2),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
   },
 
   container: {
@@ -124,13 +125,13 @@ const styles = StyleSheet.create({
 
   leftText: {
     fontSize: responsiveFontSize(1.4),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     color: "#000",
   },
 
   rightText: {
     fontSize: responsiveFontSize(1.4),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     color: "#000",
     textAlign: "right",
     maxWidth: responsiveWidth(50),
@@ -154,6 +155,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#FFFFFF",
     fontSize: responsiveFontSize(1.9),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
   },
 });

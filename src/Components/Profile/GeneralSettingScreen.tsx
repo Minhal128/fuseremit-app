@@ -26,6 +26,7 @@ import { useLanguage } from "../../context/LanguageContext";
 import { getAccessTokenAsync } from "../../services/session";
 import { fetchUserSettings, updateUserSettings } from "../../services/userApi";
 import * as Notifications from "expo-notifications";
+import Fonts from "../../constants/Fonts";
 
 // Configure how notifications are handled when the app is in the foreground
 Notifications.setNotificationHandler({
@@ -362,7 +363,7 @@ const styles = StyleSheet.create({
   title: {
     textAlign: "center",
     fontSize: responsiveFontSize(2.1),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     marginTop: responsiveHeight(2),
     marginBottom: responsiveHeight(2),
     color: "#000000",
@@ -400,7 +401,7 @@ const styles = StyleSheet.create({
 
   menuTitle: {
     fontSize: responsiveFontSize(1.8),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     color: "#1F2A50",
   },
 
@@ -431,7 +432,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: responsiveFontSize(2),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     color: "#1F2A50",
   },
   languageOption: {
@@ -444,11 +445,11 @@ const styles = StyleSheet.create({
   },
   languageLabel: {
     fontSize: responsiveFontSize(1.8),
-    fontFamily: "Manrope-Medium",
+    fontFamily: Fonts.medium,
     color: "#333",
   },
   selectedLabel: {
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     color: "#1F2A50",
   },
   selectedDot: {

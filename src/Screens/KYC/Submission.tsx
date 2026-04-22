@@ -13,6 +13,7 @@ import {
   responsiveWidth,
   responsiveFontSize,
 } from "react-native-responsive-dimensions";
+import Fonts from "../../constants/Fonts";
 
 interface Props {
   navigation: any;
@@ -80,7 +81,7 @@ const styles = StyleSheet.create({
 
   title: {
     fontSize: responsiveFontSize(2.8),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     marginBottom: responsiveHeight(1.5),
     textAlign: "center",
     paddingHorizontal: responsiveWidth(18),
@@ -88,7 +89,7 @@ const styles = StyleSheet.create({
 
   description: {
     fontSize: responsiveFontSize(1.5),
-    fontFamily: "Manrope-Medium",
+    fontFamily: Fonts.medium,
     textAlign: "center",
     color: "#666",
     lineHeight: 22,
@@ -110,7 +111,7 @@ const styles = StyleSheet.create({
 
   buttonText: {
     fontSize: responsiveFontSize(2),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     color: "#fff",
   },
 });

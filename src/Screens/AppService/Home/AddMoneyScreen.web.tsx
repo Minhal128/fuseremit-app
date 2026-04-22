@@ -13,6 +13,7 @@ import {
 } from "react-native-responsive-dimensions";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import Fonts from "../../../constants/Fonts";
 
 const AddMoneyScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -58,7 +59,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: responsiveFontSize(2.2),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     color: "#1E2A5A",
   },
   content: {
@@ -70,12 +71,12 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: responsiveFontSize(2.2),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     color: "#1E2A5A",
   },
   subtitle: {
     fontSize: responsiveFontSize(1.6),
-    fontFamily: "Manrope-Regular",
+    fontFamily: Fonts.regular,
     color: "#6B7280",
     textAlign: "center",
     lineHeight: 22,

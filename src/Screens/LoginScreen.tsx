@@ -21,6 +21,7 @@ import { biometricLogin, requestEmailLoginOtp } from "../services/authApi";
 import { getBiometricToken, hasBiometricEnabled, setSession } from "../services/session";
 import * as LocalAuthentication from "expo-local-authentication";
 import React, { useEffect } from "react";
+import Fonts from "../constants/Fonts";
 
 interface Props {
   navigation: any;
@@ -29,6 +30,7 @@ interface Props {
 const LoginScreen = ({ navigation }: Props) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [secureEntry, setSecureEntry] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [isBiometricAvailable, setIsBiometricAvailable] = useState(false);
@@ -148,6 +150,7 @@ const LoginScreen = ({ navigation }: Props) => {
             isValidEmail && styles.inputSuccess,
           ]}
         >
+          <Feather name="mail" size={20} color="#777" style={styles.inputIcon} />
           <TextInput
             style={styles.input}
             placeholder="Enter your email"
@@ -168,16 +171,26 @@ const LoginScreen = ({ navigation }: Props) => {
             isPasswordFilled && styles.inputSuccess,
           ]}
         >
+          <Feather name="lock" size={20} color="#777" style={styles.inputIcon} />
           <TextInput
             style={styles.input}
             placeholder="Enter your password (min 8 chars)"
-            secureTextEntry
+            secureTextEntry={secureEntry}
             value={password}
             onChangeText={setPassword}
           />
 
+          <TouchableOpacity onPress={() => setSecureEntry(!secureEntry)}>
+            <Feather
+              name={secureEntry ? "eye-off" : "eye"}
+              size={20}
+              color="#777"
+              style={styles.eyeIcon}
+            />
+          </TouchableOpacity>
+
           {isPasswordFilled && (
-            <Feather name="check" size={20} color="#1DB954" />
+            <Feather name="check" size={20} color="#1DB954" style={{ marginLeft: moderateScale(5) }} />
           )}
         </View>
 
@@ -241,7 +254,7 @@ const styles = StyleSheet.create({
 
   title: {
     fontSize: responsiveFontSize(2.4),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   subtitleRow: {
@@ -253,12 +266,12 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: responsiveFontSize(1.4),
     color: "#777",
-    fontFamily: "Manrope-Regular",
+    fontFamily: Fonts.regular,
   },
 
   link: {
     color: "#000",
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     fontSize: scale(10),
   },
 
@@ -267,7 +280,7 @@ const styles = StyleSheet.create({
     marginBottom: moderateScale(3),
     fontSize: responsiveFontSize(1.4),
     color: "#000",
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   inputContainer: {
@@ -294,14 +307,23 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: responsiveFontSize(1.6),
-    fontFamily: "Manrope-Regular",
+    fontFamily: Fonts.regular,
+    color: "#000",
+  },
+
+  inputIcon: {
+    marginRight: moderateScale(10),
+  },
+
+  eyeIcon: {
+    marginHorizontal: moderateScale(5),
   },
 
   errorText: {
     color: "#FB002E",
     marginTop: responsiveHeight(1),
     fontSize: responsiveFontSize(1.4),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   button: {
@@ -323,7 +345,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#9AA3AA",
     fontSize: responsiveFontSize(1.8),
-    fontFamily: "Manrope-Regular",
+    fontFamily: Fonts.regular,
   },
 
   buttonTextActive: {
@@ -340,6 +362,6 @@ const styles = StyleSheet.create({
     marginTop: moderateScale(5),
     fontSize: responsiveFontSize(1.4),
     color: "#0B3963",
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 });

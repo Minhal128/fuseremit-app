@@ -11,6 +11,7 @@ export interface CurrentUserStatus {
   gender?: "Male" | "Female" | "Other";
   phoneNumber?: string;
   countryCode?: string;
+  profilePicture?: string;
   hasPin: boolean;
   hasTransactionPin: boolean;
   accountTier: AccountTier;
@@ -37,6 +38,7 @@ export interface UpdateProfileResponse {
   gender?: "Male" | "Female" | "Other";
   phoneNumber?: string;
   countryCode?: string;
+  profilePicture?: string;
   updatedAt?: string;
 }
 
@@ -123,4 +125,46 @@ export const createTransactionPin = async (
   >("/users/me/transaction-pin", { pin }, accessToken);
 
   return res.data;
+};
+
+export const uploadProfilePicture = async (
+  accessToken: string,
+  imageUri: string,
+) => {
+  const formData = new FormData();
+  
+  // Prepare file details for upload
+  const uriParts = imageUri.split('.');
+  const fileType = uriParts[uriParts.length - 1];
+  const fileName = imageUri.split('/').pop() || 'profile.jpg';
+  
+  formData.append('image', {
+    uri: imageUri,
+    name: fileName,
+    type: `image/${fileType === 'jpg' ? 'jpeg' : fileType}`,
+  } as any);
+
+  const response = await fetch("https://fuseremit-backend.onrender.com/api/v1/users/me/profile-picture", {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      // Do not set Content-Type, fetch will set it correctly for FormData
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorString = await response.text();
+    let errorMessage = "Upload failed";
+    try {
+      const errorJson = JSON.parse(errorString);
+      errorMessage = errorJson.error?.message || errorMessage;
+    } catch {
+      // ignore
+    }
+    throw new Error(errorMessage);
+  }
+
+  const json = await response.json();
+  return json.data as { profilePicture: string; updatedAt: string };
 };

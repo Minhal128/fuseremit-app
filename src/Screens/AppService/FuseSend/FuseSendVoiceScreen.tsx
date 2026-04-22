@@ -25,6 +25,7 @@ import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { Audio } from "expo-av";
+import Fonts from "../../../constants/Fonts";
 
 const FuseSendVoiceScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
@@ -260,7 +261,7 @@ const styles = StyleSheet.create({
 
   headerTitle: {
     fontSize: responsiveFontSize(2),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
   },
 
   bgCard: {
@@ -283,7 +284,7 @@ const styles = StyleSheet.create({
   bgTitle: {
     color: "#fff",
     fontSize: responsiveFontSize(1.8),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   suggestionCard: {
@@ -311,14 +312,14 @@ const styles = StyleSheet.create({
 
   userName: {
     fontSize: responsiveFontSize(1.6),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
   },
 
   subText: { fontSize: responsiveFontSize(1.2), color: "#777" },
 
   price: {
     fontSize: responsiveFontSize(1.8),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
   },
 
   voiceSection: {
@@ -334,7 +335,7 @@ const styles = StyleSheet.create({
 
   voiceHeaderText: {
     marginLeft: 8,
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     fontSize: responsiveFontSize(1.5),
   },
 
@@ -357,7 +358,7 @@ const styles = StyleSheet.create({
 
   voiceText: {
     fontSize: responsiveFontSize(1.4),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   manualSection: {
@@ -370,13 +371,13 @@ const styles = StyleSheet.create({
   manualTitle: {
     marginLeft: 8,
     fontSize: responsiveFontSize(1.6),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   label: {
     marginTop: responsiveHeight(2),
     fontSize: responsiveFontSize(1.4),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     marginBottom: responsiveHeight(0.5),
   },
 
@@ -390,7 +391,7 @@ const styles = StyleSheet.create({
 
   input: {
     fontSize: responsiveFontSize(1.6),
-    fontFamily: "Manrope-Medium",
+    fontFamily: Fonts.medium,
   },
 
   button: {
@@ -406,6 +407,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#fff",
     fontSize: responsiveFontSize(1.8),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
   },
 });

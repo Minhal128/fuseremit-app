@@ -15,6 +15,7 @@ import {
 
 import { moderateScale } from "react-native-size-matters";
 import { FontAwesome6, Feather } from "@expo/vector-icons";
+import Fonts from "../../../constants/Fonts";
 
 const TABS = ["1D", "1W", "1M", "3M", "6M", "1Y", "ALL"];
 
@@ -96,7 +97,7 @@ const styles = StyleSheet.create({
   title: {
     textAlign: "center",
     fontSize: responsiveFontSize(2),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     color: "#000",
   },
 
@@ -104,7 +105,7 @@ const styles = StyleSheet.create({
     fontSize: responsiveFontSize(1.7),
     color: "#000000",
     marginBottom: moderateScale(6),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   amountRow: {
@@ -122,14 +123,14 @@ const styles = StyleSheet.create({
 
   amount: {
     fontSize: responsiveFontSize(3.2),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     color: "#1F2A50",
   },
 
   percentage: {
     fontSize: responsiveFontSize(1.4),
     color: "#27AE60",
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
   },
 
   tabContainer: {
@@ -155,13 +156,13 @@ const styles = StyleSheet.create({
   tabText: {
     color: "#fff",
     fontSize: responsiveFontSize(1.4),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   activeTabText: {
     color: "#fff",
     fontWeight: "600",
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   scoreHeader: {
@@ -172,13 +173,13 @@ const styles = StyleSheet.create({
 
   scoreTitle: {
     fontSize: responsiveFontSize(1.8),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     color: "#000",
   },
 
   scoreValue: {
     fontSize: responsiveFontSize(1.8),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     color: "#000",
   },
 

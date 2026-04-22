@@ -22,6 +22,7 @@ import { moderateScale } from "react-native-size-matters";
 import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import Fonts from "../../constants/Fonts";
 
 import { useLanguage } from "../../context/LanguageContext";
 
@@ -223,7 +224,7 @@ const styles = StyleSheet.create({
 
   title: {
     fontSize: responsiveFontSize(2.1),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
   },
 
   container: {
@@ -235,14 +236,14 @@ const styles = StyleSheet.create({
   sectionTitle: {
     marginTop: responsiveHeight(2),
     fontSize: responsiveFontSize(2),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
   },
 
   label: {
     marginTop: responsiveHeight(2),
     marginBottom: 3,
     fontSize: responsiveFontSize(1.4),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   inputContainer: {
@@ -257,7 +258,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: responsiveFontSize(1.6),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   dropdownAbsolute: {
@@ -289,7 +290,7 @@ const styles = StyleSheet.create({
 
   buttonText: {
     fontSize: responsiveFontSize(2),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     color: "#FFFFFF",
   },
 });

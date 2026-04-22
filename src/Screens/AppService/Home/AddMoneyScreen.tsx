@@ -23,6 +23,7 @@ import { moderateScale } from "react-native-size-matters";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { createPaymentIntent } from "../../../services/paymentApi";
+import Fonts from "../../../constants/Fonts";
 
 const AddMoneyScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -128,7 +129,7 @@ const AddMoneyScreen: React.FC = () => {
                 placeholderColor: "#C0C5D0",
                 borderWidth: 0,
                 fontSize: 16,
-                fontFamily: "Manrope-Regular",
+                fontFamily: Fonts.regular,
               }}
               style={styles.cardField}
               onCardChange={handleCardChange}
@@ -157,10 +158,10 @@ const AddMoneyScreen: React.FC = () => {
               </View>
               <View style={styles.divider} />
               <View style={styles.summaryRow}>
-                <Text style={[styles.summaryLabel, { fontFamily: "Manrope-Bold" }]}>
+                <Text style={[styles.summaryLabel, { fontFamily: Fonts.bold }]}>
                   Total
                 </Text>
-                <Text style={[styles.summaryValue, { fontFamily: "Manrope-Bold" }]}>
+                <Text style={[styles.summaryValue, { fontFamily: Fonts.bold }]}>
                   {formattedAmount}
                 </Text>
               </View>
@@ -208,7 +209,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: responsiveFontSize(2.2),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     color: "#1E2A5A",
   },
   scrollView: {
@@ -221,7 +222,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: responsiveFontSize(1.6),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     color: "#4B5563",
     marginBottom: responsiveHeight(1),
     textTransform: "uppercase",
@@ -242,14 +243,14 @@ const styles = StyleSheet.create({
   },
   currencySymbol: {
     fontSize: responsiveFontSize(3.5),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     color: "#1E2A5A",
     marginRight: 8,
   },
   input: {
     flex: 1,
     fontSize: responsiveFontSize(3.5),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     color: "#1E2A5A",
   },
   subtext: {
@@ -281,7 +282,7 @@ const styles = StyleSheet.create({
   },
   secureText: {
     fontSize: responsiveFontSize(1.2),
-    fontFamily: "Manrope-Regular",
+    fontFamily: Fonts.regular,
     color: "#9CA3AF",
   },
   summaryCard: {
@@ -303,12 +304,12 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     fontSize: responsiveFontSize(1.6),
-    fontFamily: "Manrope-Regular",
+    fontFamily: Fonts.regular,
     color: "#6B7280",
   },
   summaryValue: {
     fontSize: responsiveFontSize(1.6),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     color: "#1E2A5A",
   },
   divider: {
@@ -334,7 +335,7 @@ const styles = StyleSheet.create({
   payButtonText: {
     color: "#FFFFFF",
     fontSize: responsiveFontSize(2),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
   },
   disabledButton: {
     opacity: 0.5,

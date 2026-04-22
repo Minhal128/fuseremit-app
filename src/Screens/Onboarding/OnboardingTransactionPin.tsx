@@ -22,6 +22,7 @@ import * as LocalAuthentication from "expo-local-authentication";
 import TransactionPinSuccessModal from "../Onboarding/TransactionPinSuccessModal";
 import { getAccessTokenAsync } from "../../services/session";
 import { createTransactionPin } from "../../services/userApi";
+import Fonts from "../../constants/Fonts";
 
 interface Props {
   navigation: any;
@@ -259,7 +260,7 @@ const styles = StyleSheet.create({
 
   title: {
     fontSize: responsiveFontSize(2.4),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     color: "#000",
   },
 
@@ -267,7 +268,7 @@ const styles = StyleSheet.create({
     fontSize: responsiveFontSize(1.6),
     color: "#6B7280",
     marginTop: responsiveHeight(0.7),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   dotsContainer: {
@@ -295,7 +296,7 @@ const styles = StyleSheet.create({
   submittingText: {
     marginTop: responsiveHeight(1),
     color: "#0B3963",
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     fontSize: responsiveFontSize(1.5),
   },
 
@@ -303,7 +304,7 @@ const styles = StyleSheet.create({
     marginTop: responsiveHeight(1),
     textAlign: "center",
     color: "#FB002E",
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     fontSize: responsiveFontSize(1.4),
   },
 
@@ -311,7 +312,7 @@ const styles = StyleSheet.create({
     marginTop: responsiveHeight(1),
     textAlign: "center",
     color: "#0B3963",
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     fontSize: responsiveFontSize(1.35),
     paddingHorizontal: responsiveWidth(8),
   },
@@ -337,7 +338,7 @@ const styles = StyleSheet.create({
   keyText: {
     fontSize: responsiveFontSize(3.5),
     color: "#000",
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
   },
 
   footer: {
@@ -352,12 +353,12 @@ const styles = StyleSheet.create({
   forgot: {
     color: "#27AE60",
     fontSize: responsiveFontSize(1.6),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   logout: {
     color: "#FB002E",
     fontSize: responsiveFontSize(1.6),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 });

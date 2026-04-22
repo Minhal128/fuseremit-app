@@ -16,6 +16,7 @@ import {
 
 import { moderateScale } from "react-native-size-matters";
 import { FontAwesome5, Feather } from "@expo/vector-icons";
+import Fonts from "../../../constants/Fonts";
 
 const RecentTransactions: React.FC = () => {
   const transactions = [
@@ -153,7 +154,7 @@ const styles = StyleSheet.create({
 
   headerTitle: {
     fontSize: responsiveFontSize(2.3),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     color: "black",
   },
 
@@ -163,7 +164,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: responsiveWidth(3),
     paddingVertical: responsiveHeight(0.5),
     borderRadius: moderateScale(6),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   viewAllText: {
@@ -175,7 +176,7 @@ const styles = StyleSheet.create({
     fontSize: responsiveFontSize(1.8),
     color: "#000000",
     marginBottom: responsiveHeight(1.5),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   card: {
@@ -207,12 +208,12 @@ const styles = StyleSheet.create({
 
   name: {
     fontSize: responsiveFontSize(2),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     color: "#111",
   },
 
   amount: {
     fontSize: responsiveFontSize(2),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 });

@@ -21,6 +21,7 @@ import { Ionicons, FontAwesome } from "@expo/vector-icons";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useNavigation } from "@react-navigation/native";
 import { updateManualKycDraft } from "../../services/manualKycDraft";
+import Fonts from "../../constants/Fonts";
 
 const PREVIEW_WIDTH = responsiveWidth(60);
 const PREVIEW_HEIGHT = responsiveHeight(45);
@@ -176,7 +177,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: responsiveFontSize(2.2),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     color: "#000",
   },
 
@@ -220,7 +221,7 @@ const styles = StyleSheet.create({
     marginTop: responsiveHeight(4),
     fontSize: responsiveFontSize(1.8),
     color: "#555",
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     textAlign: "center",
     paddingHorizontal: responsiveWidth(8),
   },
@@ -229,7 +230,7 @@ const styles = StyleSheet.create({
     marginTop: responsiveHeight(1.2),
     color: "#FB002E",
     fontSize: responsiveFontSize(1.45),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     textAlign: "center",
     width: responsiveWidth(85),
   },
@@ -265,7 +266,7 @@ const styles = StyleSheet.create({
   nextButtonText: {
     color: "#fff",
     fontSize: responsiveFontSize(2),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
   },
 
   retakeButton: {
@@ -282,6 +283,6 @@ const styles = StyleSheet.create({
   retakeButtonText: {
     color: "#0B3963",
     fontSize: responsiveFontSize(1.8),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 });

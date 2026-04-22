@@ -1,6 +1,6 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import HomeScreen from "../../Screens/AppService/HomeSceren";
+import HomeScreen from "../../Screens/AppService/HomeScreen";
 import MayaAIScreen from "../../Screens/AppService/Home/MayaAIScreen";
 import AddMoneyScreen from "../../Screens/AppService/Home/AddMoneyScreen";
 

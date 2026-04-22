@@ -20,6 +20,7 @@ import { moderateScale } from "react-native-size-matters";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import Fonts from "../../../constants/Fonts";
 
 const FuseRemittance: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
@@ -157,7 +158,10 @@ const FuseRemittance: React.FC = () => {
           </View>
         </View>
 
-        <TouchableOpacity style={styles.addRecipientRow}>
+        <TouchableOpacity
+          style={styles.addRecipientRow}
+          onPress={() => navigation.navigate("SendMoneySecond")}
+        >
           <Text style={styles.addRecipientText}>Add new recipient</Text>
           <Feather name="plus" size={responsiveFontSize(2)} color="#1F2A56" />
         </TouchableOpacity>
@@ -199,7 +203,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     textAlign: "center",
     fontSize: responsiveFontSize(2),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     marginTop: responsiveHeight(5),
   },
 
@@ -227,7 +231,7 @@ const styles = StyleSheet.create({
   predictionTitle: {
     color: "#fff",
     fontSize: responsiveFontSize(1.8),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   rateCard: {
@@ -259,32 +263,32 @@ const styles = StyleSheet.create({
   smallLabel: {
     fontSize: responsiveFontSize(1.3),
     color: "#666",
-    fontFamily: "Manrope-Medium",
+    fontFamily: Fonts.medium,
   },
 
   rateText: {
     fontSize: responsiveFontSize(2),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
   },
 
   redText: {
     fontSize: responsiveFontSize(1.3),
-    fontFamily: "Manrope-Medium",
+    fontFamily: Fonts.medium,
   },
 
   greenText: {
     fontSize: responsiveFontSize(1.3),
-    fontFamily: "Manrope-Medium",
+    fontFamily: Fonts.medium,
   },
 
   recommendText: {
     fontSize: responsiveFontSize(1.3),
-    fontFamily: "Manrope-Medium",
+    fontFamily: Fonts.medium,
   },
 
   sectionTitle: {
     fontSize: responsiveFontSize(1.6),
-    fontFamily: "Manrope-Medium",
+    fontFamily: Fonts.medium,
   },
 
   sendBox: {
@@ -298,7 +302,7 @@ const styles = StyleSheet.create({
   youSend: {
     fontSize: responsiveFontSize(1.4),
     color: "#000",
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
   },
 
   amountRow: {
@@ -309,7 +313,7 @@ const styles = StyleSheet.create({
 
   amount: {
     fontSize: responsiveFontSize(2.3),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
   },
 
   currencyBox: {
@@ -325,7 +329,7 @@ const styles = StyleSheet.create({
 
   currencyText: {
     fontSize: responsiveFontSize(2.2),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
   },
 
   exchangeCard: {
@@ -342,7 +346,7 @@ const styles = StyleSheet.create({
   exchangeLabel: {
     fontSize: responsiveFontSize(1),
     color: "#666",
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
   },
 
   exchangeRate: {
@@ -352,32 +356,32 @@ const styles = StyleSheet.create({
   optimizedFee: {
     fontSize: responsiveFontSize(1.4),
     paddingTop: responsiveHeight(1.8),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   savings: {
     color: "green",
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     fontSize: responsiveFontSize(2.2),
   },
 
   saveLabel: {
     fontSize: responsiveFontSize(1.2),
     color: "#888",
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   fee: {
     color: "red",
     marginTop: responsiveHeight(0.5),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   selectionTitle: {
     marginHorizontal: responsiveWidth(5),
     marginTop: responsiveHeight(3),
     fontSize: responsiveFontSize(1.6),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   recipientCard: {
@@ -391,7 +395,7 @@ const styles = StyleSheet.create({
 
   recipientName: {
     fontSize: responsiveFontSize(1.6),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   recipientSub: {
@@ -432,7 +436,7 @@ const styles = StyleSheet.create({
   addRecipientText: {
     fontSize: responsiveFontSize(1.5),
     color: "#1F2A56",
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   featureSection: {
@@ -442,7 +446,7 @@ const styles = StyleSheet.create({
 
   featureTitle: {
     fontSize: responsiveFontSize(1.6),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     marginBottom: responsiveHeight(1),
   },
 
@@ -472,6 +476,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#fff",
     fontSize: responsiveFontSize(1.8),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 });

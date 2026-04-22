@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,8 @@ import {
   SafeAreaView,
   StatusBar,
   ScrollView,
+  Modal,
+  Pressable,
 } from "react-native";
 
 import {
@@ -20,9 +22,18 @@ import { moderateScale, scale } from "react-native-size-matters";
 import { Feather, FontAwesome6 } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import Fonts from "../../../constants/Fonts";
+
+const paymentMethods = [
+  { id: "ach", label: "Connected bank account (ACH)", icon: "hand-holding-dollar" },
+  { id: "card", label: "Debit / Credit Card", icon: "credit-card" },
+  { id: "wire", label: "Wire Transfer", icon: "building-columns" },
+];
 
 const SendMoneySecond = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
+  const [selectedMethod, setSelectedMethod] = useState(paymentMethods[0]);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -106,17 +117,20 @@ const SendMoneySecond = () => {
         </Text>
 
         <View style={styles.paymentCard}>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
             <FontAwesome6
-              name="hand-holding-dollar"
+              name={selectedMethod.icon}
               style={{ marginRight: scale(10) }}
               size={20}
               color="black"
             />
-            <Text style={styles.paymentText}>Connected bank account (ACH)</Text>
+            <Text style={styles.paymentText}>{selectedMethod.label}</Text>
           </View>
 
-          <TouchableOpacity style={styles.changeBtn}>
+          <TouchableOpacity
+            style={styles.changeBtn}
+            onPress={() => setShowPaymentModal(true)}
+          >
             <Text style={styles.changeText}>Change</Text>
             <Feather
               name="chevron-right"
@@ -131,7 +145,7 @@ const SendMoneySecond = () => {
         <View style={styles.feeBox}>
           <View style={styles.feeRow}>
             <Text style={styles.feeLabel}>
-              Connected bank account (ACH) fee
+              {selectedMethod.label} fee
             </Text>
             <Text style={styles.feeValue}>19.70 USD</Text>
           </View>
@@ -158,6 +172,62 @@ const SendMoneySecond = () => {
           <Text style={styles.buttonText}>Send Money</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Payment Method Modal */}
+      <Modal
+        visible={showPaymentModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowPaymentModal(false)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setShowPaymentModal(false)}
+        />
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Select Payment Method</Text>
+            <TouchableOpacity onPress={() => setShowPaymentModal(false)}>
+              <Feather name="x" size={24} color="#000" />
+            </TouchableOpacity>
+          </View>
+
+          {paymentMethods.map((method) => {
+            const isSelected = selectedMethod.id === method.id;
+            return (
+              <TouchableOpacity
+                key={method.id}
+                style={[
+                  styles.methodOption,
+                  isSelected && styles.methodOptionSelected,
+                ]}
+                onPress={() => {
+                  setSelectedMethod(method);
+                  setShowPaymentModal(false);
+                }}
+              >
+                <FontAwesome6
+                  name={method.icon}
+                  size={20}
+                  color={isSelected ? "#1F2A50" : "#555"}
+                  style={{ marginRight: scale(12) }}
+                />
+                <Text
+                  style={[
+                    styles.methodLabel,
+                    isSelected && styles.methodLabelSelected,
+                  ]}
+                >
+                  {method.label}
+                </Text>
+                {isSelected && (
+                  <Feather name="check" size={20} color="#1F2A50" style={{ marginLeft: "auto" }} />
+                )}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -189,13 +259,13 @@ const styles = StyleSheet.create({
 
   title: {
     fontSize: responsiveFontSize(2.1),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
   },
 
   label: {
     marginTop: responsiveHeight(2.5),
     fontSize: responsiveFontSize(1.5),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   amountCard: {
@@ -211,7 +281,7 @@ const styles = StyleSheet.create({
 
   amountText: {
     fontSize: responsiveFontSize(2.1),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
   },
 
   currencyWrapper: {
@@ -222,7 +292,7 @@ const styles = StyleSheet.create({
   currencyText: {
     marginHorizontal: 6,
     fontSize: responsiveFontSize(2),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
   },
 
   flag: {
@@ -263,7 +333,7 @@ const styles = StyleSheet.create({
 
   rateText: {
     fontSize: responsiveFontSize(1.4),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   paymentCard: {
@@ -279,7 +349,7 @@ const styles = StyleSheet.create({
 
   paymentText: {
     fontSize: responsiveFontSize(1.5),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   changeBtn: {
@@ -293,7 +363,7 @@ const styles = StyleSheet.create({
 
   changeText: {
     fontSize: responsiveFontSize(1.3),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     color: "#000",
   },
 
@@ -313,12 +383,12 @@ const styles = StyleSheet.create({
 
   feeLabel: {
     fontSize: responsiveFontSize(1.2),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   feeValue: {
     fontSize: responsiveFontSize(1.2),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   divider: {
@@ -329,18 +399,18 @@ const styles = StyleSheet.create({
 
   totalLabel: {
     fontSize: responsiveFontSize(1.2),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   totalValue: {
     fontSize: responsiveFontSize(1.5),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
   },
 
   saveText: {
     marginTop: responsiveHeight(2),
     fontSize: responsiveFontSize(1.3),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     color: 'black'
   },
 
@@ -355,7 +425,60 @@ const styles = StyleSheet.create({
 
   buttonText: {
     fontSize: responsiveFontSize(2),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     color: "#FFFFFF",
+  },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+
+  modalContent: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: moderateScale(20),
+    borderTopRightRadius: moderateScale(20),
+    paddingBottom: responsiveHeight(5),
+    paddingHorizontal: responsiveWidth(5),
+  },
+
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: responsiveHeight(2.5),
+    borderBottomWidth: 1,
+    borderBottomColor: "#F0F0F0",
+    marginBottom: responsiveHeight(1),
+  },
+
+  modalTitle: {
+    fontSize: responsiveFontSize(2),
+    fontFamily: Fonts.bold,
+    color: "#1F2A50",
+  },
+
+  methodOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: responsiveHeight(2),
+    paddingHorizontal: responsiveWidth(3),
+    borderRadius: moderateScale(10),
+    marginBottom: responsiveHeight(0.5),
+  },
+
+  methodOptionSelected: {
+    backgroundColor: "#1F2A5010",
+  },
+
+  methodLabel: {
+    fontSize: responsiveFontSize(1.6),
+    fontFamily: Fonts.medium,
+    color: "#333",
+  },
+
+  methodLabelSelected: {
+    fontFamily: Fonts.bold,
+    color: "#1F2A50",
   },
 });

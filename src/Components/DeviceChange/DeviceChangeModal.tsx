@@ -16,6 +16,7 @@ import {
 } from "react-native-responsive-dimensions";
 import { moderateScale } from "react-native-size-matters";
 import { Feather } from "@expo/vector-icons";
+import Fonts from "../../constants/Fonts";
 
 interface Props {
   visible: boolean;
@@ -126,7 +127,7 @@ const styles = StyleSheet.create({
 
   title: {
     fontSize: responsiveFontSize(2.8),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     marginBottom: responsiveHeight(1),
   },
 
@@ -135,7 +136,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#555",
     marginBottom: responsiveHeight(3),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     paddingHorizontal: responsiveWidth(4),
   },
 
@@ -151,7 +152,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#fff",
     fontSize: responsiveFontSize(2),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   closeButton: {

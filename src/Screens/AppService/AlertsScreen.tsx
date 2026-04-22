@@ -18,6 +18,7 @@ import {
 
 import { moderateScale } from "react-native-size-matters";
 import { Feather, Ionicons } from "@expo/vector-icons";
+import Fonts from "../../constants/Fonts";
 
 interface AlertItem {
   title: string;
@@ -128,7 +129,7 @@ const styles = StyleSheet.create({
 
   headerTitle: {
     fontSize: responsiveFontSize(2.3),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     color: "#000",
   },
 
@@ -169,7 +170,7 @@ const styles = StyleSheet.create({
   alertText: {
     flex: 1,
     fontSize: responsiveFontSize(1.6),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     color: "#111",
     paddingRight: responsiveWidth(2),
   },
@@ -181,13 +182,13 @@ const styles = StyleSheet.create({
   aiText: {
     fontSize: responsiveFontSize(1.3),
     color: "#203A73",
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   timeText: {
     fontSize: responsiveFontSize(1.3),
     color: "#000000",
-    fontFamily: "Manrope-Regular",
+    fontFamily: Fonts.regular,
     marginTop: responsiveHeight(2),
   },
 });

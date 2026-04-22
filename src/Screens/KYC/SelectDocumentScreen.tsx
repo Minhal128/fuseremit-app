@@ -26,6 +26,7 @@ import {
   getManualKycDraft,
   updateManualKycDraft,
 } from "../../services/manualKycDraft";
+import Fonts from "../../constants/Fonts";
 
 const SelectDocumentScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -241,7 +242,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: responsiveFontSize(2.2),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     color: "#000",
     textAlign: "center",
     flex: 1,
@@ -266,7 +267,7 @@ const styles = StyleSheet.create({
   infoSection: { alignItems: "center", marginTop: responsiveHeight(3) },
   title: {
     fontSize: responsiveFontSize(2.2),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     color: "#000",
     textAlign: "center",
     width: responsiveWidth(80),
@@ -276,12 +277,12 @@ const styles = StyleSheet.create({
     color: "#666",
     textAlign: "center",
     width: responsiveWidth(80),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
   },
   capturedText: {
     fontSize: responsiveFontSize(1.6),
     color: "#1E1E1E",
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     textAlign: "center",
   },
   bottomControls: {
@@ -297,7 +298,7 @@ const styles = StyleSheet.create({
     marginTop: responsiveHeight(0.5),
     fontSize: responsiveFontSize(1.4),
     color: "#000",
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
   captureButton: {
     width: responsiveWidth(17),
@@ -318,7 +319,7 @@ const styles = StyleSheet.create({
   nextButtonText: {
     color: "#fff",
     fontSize: responsiveFontSize(2),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
   },
 
   savedActionsWrap: {
@@ -342,6 +343,6 @@ const styles = StyleSheet.create({
   retakeButtonText: {
     color: "#0B3963",
     fontSize: responsiveFontSize(1.8),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 });

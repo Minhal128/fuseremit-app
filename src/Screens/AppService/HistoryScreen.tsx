@@ -17,6 +17,7 @@ import {
 
 import { moderateScale } from "react-native-size-matters";
 import { FontAwesome5, Feather } from "@expo/vector-icons";
+import Fonts from "../../constants/Fonts";
 
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -162,7 +163,7 @@ const styles = StyleSheet.create({
 
   headerTitle: {
     fontSize: responsiveFontSize(2.2),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     color: "#000",
   },
 
@@ -170,7 +171,7 @@ const styles = StyleSheet.create({
     fontSize: responsiveFontSize(1.7),
     color: "#7A7A7A",
     marginBottom: responsiveHeight(1.5),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   row: {
@@ -196,12 +197,12 @@ const styles = StyleSheet.create({
 
   name: {
     fontSize: responsiveFontSize(2),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     color: "#111111",
   },
 
   amount: {
     fontSize: responsiveFontSize(2),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 });

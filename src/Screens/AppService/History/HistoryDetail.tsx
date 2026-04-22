@@ -15,6 +15,7 @@ import {
 } from "react-native-responsive-dimensions";
 import { moderateScale } from "react-native-size-matters";
 import { Ionicons, FontAwesome5 } from "@expo/vector-icons";
+import Fonts from "../../../constants/Fonts";
 
 interface Props {
   navigation: any;
@@ -117,7 +118,7 @@ const styles = StyleSheet.create({
 
   topTitle: {
     fontSize: responsiveFontSize(2),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     color: "#000",
   },
 
@@ -156,13 +157,13 @@ const styles = StyleSheet.create({
   smallLabel: {
     fontSize: responsiveFontSize(1.4),
     color: "#555",
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     textAlign: "center",
   },
 
   amountText: {
     fontSize: responsiveFontSize(4),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     marginTop: responsiveHeight(0.5),
     color: "#000",
     textAlign: "center",
@@ -186,12 +187,12 @@ const styles = StyleSheet.create({
   rowLabel: {
     fontSize: responsiveFontSize(1.5),
     color: "#444",
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   rowValue: {
     fontSize: responsiveFontSize(1.5),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     color: "#000",
   },
 
@@ -216,6 +217,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     marginLeft: moderateScale(6),
     fontSize: responsiveFontSize(1.2),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 });

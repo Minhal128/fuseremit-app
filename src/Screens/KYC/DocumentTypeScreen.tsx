@@ -18,6 +18,7 @@ import { Ionicons, Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import * as Location from "expo-location";
+import Fonts from "../../constants/Fonts";
 import {
   ManualKycDocumentType,
   getManualKycDraft,
@@ -191,7 +192,7 @@ const styles = StyleSheet.create({
 
   headerTitle: {
     fontSize: responsiveFontSize(2.4),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     color: "#000",
   },
 
@@ -200,7 +201,7 @@ const styles = StyleSheet.create({
     fontSize: responsiveFontSize(1.8),
     color: "#1E1E1E",
     lineHeight: moderateScale(22),
-    fontFamily: "Manrope-Medium",
+    fontFamily: Fonts.medium,
     marginBottom: 0,
     marginLeft: responsiveWidth(2),
   },
@@ -214,7 +215,7 @@ const styles = StyleSheet.create({
 
   errorText: {
     color: "#FB002E",
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     fontSize: responsiveFontSize(1.35),
     marginBottom: responsiveHeight(1),
   },
@@ -238,7 +239,7 @@ const styles = StyleSheet.create({
   cardText: {
     color: "#fff",
     fontSize: responsiveFontSize(1.9),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     textAlign: "left",
     flex: 1,
   },
@@ -258,6 +259,6 @@ const styles = StyleSheet.create({
   verifyText: {
     color: "#fff",
     fontSize: responsiveFontSize(2),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
   },
 });

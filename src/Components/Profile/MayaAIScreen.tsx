@@ -20,6 +20,7 @@ import {
 import { moderateScale } from "react-native-size-matters";
 import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import Fonts from "../../constants/Fonts";
 
 const MayAIScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -134,7 +135,7 @@ const styles = StyleSheet.create({
   title: {
     textAlign: "center",
     fontSize: responsiveFontSize(2.1),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     marginTop: responsiveHeight(2),
     marginBottom: responsiveHeight(2),
     color: "#000000",
@@ -172,7 +173,7 @@ const styles = StyleSheet.create({
 
   menuTitle: {
     fontSize: responsiveFontSize(1.8),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     color: "#1F2A50",
   },
 

@@ -14,6 +14,7 @@ import {
 } from "react-native-responsive-dimensions";
 import { moderateScale } from "react-native-size-matters";
 import { Ionicons, Feather } from "@expo/vector-icons";
+import Fonts from "../../../constants/Fonts";
 
 const ReviewSendScreen: React.FC = () => {
   return (
@@ -80,7 +81,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     textAlign: "center",
     fontSize: responsiveFontSize(2.2),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     marginTop: responsiveHeight(5),
     color: "#000",
     marginBottom: responsiveHeight(4),
@@ -97,7 +98,7 @@ const styles = StyleSheet.create({
 
   amountText: {
     fontSize: responsiveFontSize(2.6),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     color: "#000",
     marginBottom: responsiveHeight(2),
   },
@@ -111,24 +112,24 @@ const styles = StyleSheet.create({
   receiveLabel: {
     fontSize: responsiveFontSize(1.4),
     color: "#000",
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   receiveAmount: {
     fontSize: responsiveFontSize(2.3),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     color: "#27AE60",
   },
 
   currency: {
     fontSize: responsiveFontSize(1.6),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     color: "#000",
   },
 
   sectionLabel: {
     fontSize: responsiveFontSize(1.4),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     color: "#444",
     marginBottom: responsiveHeight(1.5),
   },
@@ -146,13 +147,13 @@ const styles = StyleSheet.create({
 
   detailText: {
     fontSize: responsiveFontSize(1.8),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     color: "#000",
   },
 
   countryText: {
     fontSize: responsiveFontSize(1.7),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     color: "#6B7280",
   },
 
@@ -168,7 +169,7 @@ const styles = StyleSheet.create({
 
   paymentText: {
     fontSize: responsiveFontSize(1.8),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     color: "#000",
   },
 
@@ -185,7 +186,7 @@ const styles = StyleSheet.create({
   confirmText: {
     color: "#fff",
     fontSize: responsiveFontSize(1.8),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
   buttonRobot: {
     width: responsiveWidth(6),

@@ -16,6 +16,7 @@ import {
 } from "react-native-responsive-dimensions";
 
 import { moderateScale } from "react-native-size-matters";
+import Fonts from "../../../constants/Fonts";
 
 interface Props {
   navigation: any;
@@ -152,18 +153,18 @@ const styles = StyleSheet.create({
   },
   topTitle: {
     fontSize: responsiveFontSize(2.4),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
   title: {
     fontSize: responsiveFontSize(2.3),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     marginTop: responsiveHeight(2),
   },
   subtitle: {
     fontSize: responsiveFontSize(1.5),
     color: "#777",
     marginTop: moderateScale(6),
-    fontFamily: "Manrope-Regular",
+    fontFamily: Fonts.regular,
   },
   otpRow: {
     flexDirection: "row",
@@ -202,7 +203,7 @@ const styles = StyleSheet.create({
   continueText: {
     fontSize: responsiveFontSize(1.9),
     color: "#1E1E1E",
-    fontFamily: "Manrope-Regular",
+    fontFamily: Fonts.regular,
   },
   continueTextActive: {
     color: "#fff",

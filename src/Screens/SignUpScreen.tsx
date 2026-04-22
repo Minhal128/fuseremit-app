@@ -24,6 +24,7 @@ import { DatePickerModal, en, registerTranslation } from "react-native-paper-dat
 import { registerAccount, requestEmailLoginOtp } from "../services/authApi";
 import { setSession } from "../services/session";
 import { Calendar } from "react-native-calendars";
+import Fonts from "../constants/Fonts";
 
 interface Props {
   navigation: any;
@@ -36,6 +37,7 @@ const SignUpScreen = ({ navigation }: Props) => {
   const [last, setLast] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [secureEntry, setSecureEntry] = useState(true);
 
   const [gender, setGender] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
@@ -245,6 +247,7 @@ const SignUpScreen = ({ navigation }: Props) => {
           value={first}
           setValue={setFirst}
           borderColor={borderColor(first)}
+          icon="user"
         />
         <Input
           label="Last Name"
@@ -252,6 +255,7 @@ const SignUpScreen = ({ navigation }: Props) => {
           value={last}
           setValue={setLast}
           borderColor={borderColor(last)}
+          icon="user"
         />
         <Input
           label="Email Address"
@@ -259,6 +263,7 @@ const SignUpScreen = ({ navigation }: Props) => {
           value={email}
           setValue={setEmail}
           borderColor={borderColor(email)}
+          icon="mail"
         />
 
         <Text style={styles.label}>Password</Text>
@@ -268,15 +273,24 @@ const SignUpScreen = ({ navigation }: Props) => {
             { borderColor: borderColor(password) },
           ]}
         >
+          <Feather name="lock" size={20} color="#777" style={styles.inputIcon} />
           <TextInput
             style={styles.input}
             placeholder="*********"
-            secureTextEntry
+            secureTextEntry={secureEntry}
             value={password}
             onChangeText={setPassword}
           />
+          <TouchableOpacity onPress={() => setSecureEntry(!secureEntry)}>
+            <Feather
+              name={secureEntry ? "eye-off" : "eye"}
+              size={20}
+              color="#777"
+              style={styles.eyeIcon}
+            />
+          </TouchableOpacity>
           {password.length > 0 && (
-            <Feather name="check" size={20} color="#1DB954" />
+            <Feather name="check" size={20} color="#1DB954" style={{ marginLeft: moderateScale(5) }} />
           )}
         </View>
 
@@ -390,10 +404,18 @@ const SignUpScreen = ({ navigation }: Props) => {
 
 export default SignUpScreen;
 
-const Input = ({ label, placeholder, value, setValue, borderColor }: any) => (
+const Input = ({ label, placeholder, value, setValue, borderColor, icon }: any) => (
   <>
     <Text style={styles.label}>{label}</Text>
     <View style={[styles.inputContainer, { borderColor }]}>
+      {icon && (
+        <Feather
+          name={icon}
+          size={20}
+          color="#777"
+          style={styles.inputIcon}
+        />
+      )}
       <TextInput
         style={styles.input}
         placeholder={placeholder}
@@ -418,18 +440,18 @@ const styles = StyleSheet.create({
   },
   backBtn: { position: "absolute", left: 0 },
   logo: { width: responsiveWidth(50), height: responsiveHeight(5) },
-  title: { fontSize: responsiveFontSize(2.5), fontFamily: "Manrope-SemiBold" },
+  title: { fontSize: responsiveFontSize(2.5), fontFamily: Fonts.semiBold },
   subtitle: {
     fontSize: responsiveFontSize(1.4),
     color: "#777",
     marginTop: 6,
-    fontFamily: "Manrope-Regular",
+    fontFamily: Fonts.regular,
   },
   label: {
     marginTop: responsiveHeight(2),
     marginBottom: 3,
     fontSize: responsiveFontSize(1.6),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
   inputContainer: {
     flexDirection: "row",
@@ -442,13 +464,19 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: responsiveFontSize(1.7),
-    fontFamily: "Manrope-Regular",
+    fontFamily: Fonts.regular,
     color: "black",
+  },
+  inputIcon: {
+    marginRight: moderateScale(10),
+  },
+  eyeIcon: {
+    marginHorizontal: moderateScale(5),
   },
   dateValue: {
     flex: 1,
     fontSize: responsiveFontSize(1.7),
-    fontFamily: "Manrope-Regular",
+    fontFamily: Fonts.regular,
     color: "black",
   },
 
@@ -468,7 +496,7 @@ const styles = StyleSheet.create({
     fontSize: responsiveFontSize(1.5),
     color: "#1E1E1E",
     marginVertical: responsiveHeight(1.8),
-    fontFamily: "Manrope-Medium",
+    fontFamily: Fonts.medium,
   },
   link: { color: "#0B3963", fontWeight: "600" },
 
@@ -493,14 +521,14 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: responsiveFontSize(1.5),
     color: "#1E1E1E",
-    fontFamily: "Manrope-Medium",
+    fontFamily: Fonts.medium,
   },
 
   errorText: {
     marginTop: responsiveHeight(0.5),
     marginBottom: responsiveHeight(0.6),
     color: "#FB002E",
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     fontSize: responsiveFontSize(1.35),
     textAlign: "center",
   },
@@ -518,6 +546,6 @@ const styles = StyleSheet.create({
 
   buttonText: {
     fontSize: responsiveFontSize(1.8),
-    fontFamily: "Manrope-Medium",
+    fontFamily: Fonts.medium,
   },
 });

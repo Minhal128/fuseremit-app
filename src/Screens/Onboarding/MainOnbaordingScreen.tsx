@@ -21,6 +21,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../../types/navigation";
 import { getAccessTokenAsync } from "../../services/session";
 import { fetchCurrentUserStatus } from "../../services/userApi";
+import Fonts from "../../constants/Fonts";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -258,7 +259,7 @@ const styles = StyleSheet.create({
 
   headerTitle: {
     fontSize: responsiveFontSize(2.5),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     color: "#000",
   },
 
@@ -271,7 +272,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: responsiveFontSize(1.8),
     color: "#1E1E1E",
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   loadingWrap: {
@@ -282,7 +283,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: responsiveHeight(0.8),
     color: "#0B3963",
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     fontSize: responsiveFontSize(1.4),
   },
 
@@ -290,7 +291,7 @@ const styles = StyleSheet.create({
     marginTop: responsiveHeight(1.4),
     textAlign: "center",
     color: "#FB002E",
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     fontSize: responsiveFontSize(1.4),
   },
 
@@ -318,7 +319,7 @@ const styles = StyleSheet.create({
   taskText: {
     fontSize: responsiveFontSize(2),
     color: "#333",
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   taskTextDisabled: {
@@ -328,7 +329,7 @@ const styles = StyleSheet.create({
   lockedHint: {
     textAlign: "center",
     color: "#6B7280",
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     fontSize: responsiveFontSize(1.45),
     marginTop: responsiveHeight(0.5),
     paddingHorizontal: responsiveWidth(8),
@@ -358,6 +359,6 @@ const styles = StyleSheet.create({
   homeButtonText: {
     color: "#fff",
     fontSize: responsiveFontSize(1.8),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 });

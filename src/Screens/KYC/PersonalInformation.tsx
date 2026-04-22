@@ -23,6 +23,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { fetchCurrentUserStatus, updateCurrentUserProfile } from "../../services/userApi";
 import { getAccessTokenAsync, getSessionUser } from "../../services/session";
 import { getManualKycDraft, updateManualKycDraft } from "../../services/manualKycDraft";
+import Fonts from "../../constants/Fonts";
 
 interface Props {
   navigation: any;
@@ -210,7 +211,7 @@ const PersonalInformation = ({ navigation }: Props) => {
           <Text
             style={{
               fontSize: responsiveFontSize(2.4),
-              fontFamily: "Manrope-SemiBold",
+              fontFamily: Fonts.semiBold,
             }}
           >
             Personal Information
@@ -352,7 +353,7 @@ const styles = StyleSheet.create({
     marginTop: responsiveHeight(2),
     marginBottom: 3,
     fontSize: responsiveFontSize(1.4),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   inputContainer: {
@@ -367,7 +368,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: responsiveFontSize(1.6),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   dropdownAbsolute: {
@@ -398,7 +399,7 @@ const styles = StyleSheet.create({
 
   buttonText: {
     fontSize: responsiveFontSize(2),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
   },
 
   loadingWrap: {
@@ -409,7 +410,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: responsiveHeight(0.6),
     color: "#0B3963",
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     fontSize: responsiveFontSize(1.45),
   },
 
@@ -418,7 +419,7 @@ const styles = StyleSheet.create({
     marginBottom: responsiveHeight(1),
     color: "#FB002E",
     textAlign: "center",
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     fontSize: responsiveFontSize(1.4),
     paddingHorizontal: responsiveWidth(2),
   },

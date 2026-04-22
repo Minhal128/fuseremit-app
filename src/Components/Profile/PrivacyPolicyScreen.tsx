@@ -16,6 +16,7 @@ import {
 
 import { moderateScale } from "react-native-size-matters";
 import { Ionicons } from "@expo/vector-icons";
+import Fonts from "../../constants/Fonts";
 
 interface Props {
   navigation: any;
@@ -107,7 +108,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     color: "#FFFFFF",
     fontSize: responsiveFontSize(2),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
   },
 
   content: {
@@ -116,14 +117,14 @@ const styles = StyleSheet.create({
 
   mainTitle: {
     fontSize: responsiveFontSize(1.6),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     marginBottom: responsiveHeight(2),
     color: "#000",
   },
 
   sectionTitle: {
     fontSize: responsiveFontSize(1.6),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     marginBottom: responsiveHeight(1),
     color: "#000",
   },

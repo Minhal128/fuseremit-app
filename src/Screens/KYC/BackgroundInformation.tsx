@@ -18,6 +18,7 @@ import {
 
 import { moderateScale } from "react-native-size-matters";
 import { Feather, Ionicons } from "@expo/vector-icons";
+import Fonts from "../../constants/Fonts";
 
 interface Props {
   navigation: any;
@@ -237,14 +238,14 @@ const styles = StyleSheet.create({
 
   title: {
     fontSize: responsiveFontSize(2.4),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   label: {
     marginTop: responsiveHeight(2),
     marginBottom: 5,
     fontSize: responsiveFontSize(1.4),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   inputContainer: {
@@ -281,7 +282,7 @@ const styles = StyleSheet.create({
   rowText: {
     flex: 1,
     fontSize: responsiveFontSize(1.8),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   checkbox: {
@@ -309,7 +310,7 @@ const styles = StyleSheet.create({
 
   buttonText: {
     fontSize: responsiveFontSize(2),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     color: "#fff",
   },
 });

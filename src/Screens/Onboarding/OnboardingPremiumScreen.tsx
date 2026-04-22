@@ -15,6 +15,7 @@ import {
 import { moderateScale } from "react-native-size-matters";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import Fonts from "../../constants/Fonts";
 
 const OnboardingPremiumScreen: React.FC = () => {
   const navigation = useNavigation<any>();
@@ -77,7 +78,7 @@ const styles = StyleSheet.create({
 
   headerTitle: {
     fontSize: responsiveFontSize(2.5),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   content: {
@@ -89,7 +90,7 @@ const styles = StyleSheet.create({
     fontSize: responsiveFontSize(1.9),
     textAlign: "center",
     marginVertical: responsiveHeight(5),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   stepRow: {
@@ -100,7 +101,7 @@ const styles = StyleSheet.create({
 
   stepText: {
     marginLeft: responsiveWidth(2),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   buttonContainer: {
@@ -118,6 +119,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#FFFFFF",
     fontSize: responsiveFontSize(2),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 });

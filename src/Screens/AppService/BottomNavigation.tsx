@@ -15,6 +15,7 @@ import HistoryStack from "../../Components/History/HistoryStack";
 import ProfileStack from "../../Components/Profile/ProfileStack";
 
 import { useLanguage } from "../../context/LanguageContext";
+import Fonts from "../../constants/Fonts";
 
 const Tab = createBottomTabNavigator();
 
@@ -211,7 +212,7 @@ const styles = StyleSheet.create({
     fontSize: responsiveFontSize(1.2),
     marginTop: responsiveHeight(0.3),
     color: "#0B3963",
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     textAlign: "center",
     width: responsiveWidth(18),
   },

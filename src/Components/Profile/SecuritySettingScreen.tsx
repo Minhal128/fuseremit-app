@@ -23,6 +23,7 @@ import { useNavigation } from "@react-navigation/native";
 import * as LocalAuthentication from "expo-local-authentication";
 import { setupBiometric, toggleTwoFactor } from "../../services/authApi";
 import { getAccessTokenAsync, setBiometricToken, hasBiometricEnabled } from "../../services/session";
+import Fonts from "../../constants/Fonts";
 
 const SecuritySettingScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -236,7 +237,7 @@ const styles = StyleSheet.create({
   title: {
     textAlign: "center",
     fontSize: responsiveFontSize(2.1),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     marginTop: responsiveHeight(2),
     marginBottom: responsiveHeight(2),
     color: "#000000",
@@ -274,7 +275,7 @@ const styles = StyleSheet.create({
 
   menuTitle: {
     fontSize: responsiveFontSize(1.7),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     color: "#1F2A50",
   },
 

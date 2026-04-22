@@ -21,6 +21,7 @@ import Svg, { Circle } from "react-native-svg";
 import { useNavigation } from "@react-navigation/native";
 import { getAccessTokenAsync } from "../../services/session";
 import { updateKycStatus } from "../../services/userApi";
+import Fonts from "../../constants/Fonts";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -297,14 +298,14 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: responsiveFontSize(2.5),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
   content: { paddingHorizontal: responsiveWidth(6) },
   subTitle: {
     fontSize: responsiveFontSize(1.9),
     textAlign: "center",
     marginVertical: responsiveHeight(5),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
   stepRow: {
     flexDirection: "row",
@@ -313,12 +314,12 @@ const styles = StyleSheet.create({
   },
   stepText: {
     marginLeft: responsiveWidth(2),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
   uploadLabel: {
     marginTop: responsiveHeight(10),
     marginBottom: responsiveHeight(2),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
   uploadBox: {
     borderWidth: 1,
@@ -355,12 +356,12 @@ const styles = StyleSheet.create({
     marginRight: 10,
     resizeMode: "contain",
   },
-  fileName: { fontFamily: "Manrope-SemiBold" },
+  fileName: { fontFamily: Fonts.semiBold },
   progressText: { fontSize: 12, color: "#555" },
   syncErrorText: {
     marginTop: responsiveHeight(1.2),
     color: "#FB002E",
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     fontSize: responsiveFontSize(1.3),
   },
 });

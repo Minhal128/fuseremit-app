@@ -25,6 +25,7 @@ import {
   verifyForgotPinOtp,
 } from "../../services/authApi";
 import { setSession } from "../../services/session";
+import Fonts from "../../constants/Fonts";
 
 interface Props {
   navigation: any;
@@ -324,14 +325,14 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: responsiveFontSize(2.3),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     marginTop: responsiveHeight(2),
   },
   subtitle: {
     fontSize: responsiveFontSize(1.5),
     color: "#777",
     marginTop: moderateScale(6),
-    fontFamily: "Manrope-Regular",
+    fontFamily: Fonts.regular,
   },
   otpRow: {
     flexDirection: "row",
@@ -354,7 +355,7 @@ const styles = StyleSheet.create({
     color: "#FB002E",
     marginTop: responsiveHeight(1.5),
     fontSize: responsiveFontSize(1.4),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   bottom: {
@@ -377,7 +378,7 @@ const styles = StyleSheet.create({
   verifyText: {
     fontSize: responsiveFontSize(1.9),
     color: "#1E1E1E",
-    fontFamily: "Manrope-Regular",
+    fontFamily: Fonts.regular,
   },
   verifyTextActive: {
     color: "#fff",
@@ -386,13 +387,13 @@ const styles = StyleSheet.create({
     marginTop: moderateScale(10),
     fontSize: responsiveFontSize(1.4),
     color: "#555",
-    fontFamily: "Manrope-Regular",
+    fontFamily: Fonts.regular,
   },
   resendLink: {
     marginTop: responsiveHeight(0.8),
     fontSize: responsiveFontSize(1.5),
     color: "#9AA3AA",
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
   resendLinkActive: {
     color: "#0B3963",

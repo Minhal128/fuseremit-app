@@ -23,19 +23,19 @@ const WelcomeScreen = () => {
       try {
         await hydrateSession();
         const accessToken = await getAccessTokenAsync();
-
+        
         if (!isMounted) return;
-
+        
         timer = setTimeout(() => {
           if (!isMounted) return;
 
           navigation.replace(
-            accessToken ? "AppServiceBottomNavigation" : "Login",
+            accessToken ? "AppServiceBottomNavigation" : "Login"
           );
         }, 3500);
       } catch {
         if (!isMounted) return;
-
+        
         timer = setTimeout(() => {
           if (!isMounted) return;
           navigation.replace("Login");

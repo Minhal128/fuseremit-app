@@ -24,6 +24,7 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { getAccessTokenAsync } from "../../services/session";
 import { changePassword } from "../../services/authApi";
+import Fonts from "../../constants/Fonts";
 
 const ChangePassword: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
@@ -224,7 +225,7 @@ const styles = StyleSheet.create({
   screenTitle: {
     textAlign: "center",
     fontSize: responsiveFontSize(2.1),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     marginTop: responsiveHeight(2),
   },
 
@@ -259,7 +260,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: responsiveFontSize(1.4),
     marginBottom: responsiveHeight(0.5),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   inputContainer: {
@@ -276,7 +277,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: responsiveFontSize(1.5),
     color: "#000",
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   buttonWrapper: {
@@ -296,6 +297,6 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: "#FFF",
     fontSize: responsiveFontSize(1.8),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 });

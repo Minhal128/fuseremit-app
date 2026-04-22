@@ -21,6 +21,7 @@ import { moderateScale } from "react-native-size-matters";
 import { Feather } from "@expo/vector-icons";
 
 import ChangeDevicePhoneVerifyModal from "./ChangeDevicePhoneVerifyModal";
+import Fonts from "../../constants/Fonts";
 
 interface Props {
   navigation: any;
@@ -201,14 +202,14 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: responsiveFontSize(2.3),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     marginTop: responsiveHeight(2),
   },
   subtitle: {
     fontSize: responsiveFontSize(1.5),
     color: "#777",
     marginTop: moderateScale(6),
-    fontFamily: "Manrope-Regular",
+    fontFamily: Fonts.regular,
   },
   otpRow: {
     flexDirection: "row",
@@ -247,7 +248,7 @@ const styles = StyleSheet.create({
   resendText: {
     fontSize: responsiveFontSize(1.8),
     color: "#1E1E1E",
-    fontFamily: "Manrope-Regular",
+    fontFamily: Fonts.regular,
   },
   resendTextActive: {
     color: "#fff",
@@ -256,6 +257,6 @@ const styles = StyleSheet.create({
     marginTop: moderateScale(10),
     fontSize: responsiveFontSize(1.4),
     color: "#555",
-    fontFamily: "Manrope-Regular",
+    fontFamily: Fonts.regular,
   },
 });

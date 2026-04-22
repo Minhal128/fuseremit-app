@@ -20,6 +20,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { getAccessTokenAsync } from "../../services/session";
 import { fetchCurrentUserStatus } from "../../services/userApi";
 import { getManualKycDraft } from "../../services/manualKycDraft";
+import Fonts from "../../constants/Fonts";
 
 interface KycCompletionState {
   personalInfoDone: boolean;
@@ -235,7 +236,7 @@ const styles = StyleSheet.create({
 
   headerTitle: {
     fontSize: responsiveFontSize(2.4),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     color: "#000",
   },
 
@@ -244,7 +245,7 @@ const styles = StyleSheet.create({
     fontSize: responsiveFontSize(1.8),
     color: "#1E1E1E",
     lineHeight: moderateScale(22),
-    fontFamily: "Manrope-Medium",
+    fontFamily: Fonts.medium,
     marginBottom: responsiveHeight(6),
   },
 
@@ -257,13 +258,13 @@ const styles = StyleSheet.create({
   loadingText: {
     marginLeft: responsiveWidth(2),
     color: "#0B3963",
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     fontSize: responsiveFontSize(1.4),
   },
 
   errorText: {
     color: "#FB002E",
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     fontSize: responsiveFontSize(1.35),
     marginBottom: responsiveHeight(0.8),
   },
@@ -284,7 +285,7 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: responsiveFontSize(1.9),
     marginRight: responsiveWidth(3),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   iconRow: {
@@ -307,7 +308,7 @@ const styles = StyleSheet.create({
   lockHint: {
     color: "#5B6470",
     fontSize: responsiveFontSize(1.45),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     textAlign: "center",
     marginBottom: responsiveHeight(1.2),
   },
@@ -315,6 +316,6 @@ const styles = StyleSheet.create({
   verifyText: {
     color: "#fff",
     fontSize: responsiveFontSize(2),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
   },
 });

@@ -24,6 +24,7 @@ import { moderateScale } from "react-native-size-matters";
 import { Feather } from "@expo/vector-icons";
 import { getAccessTokenAsync } from "../../services/session";
 import { updateSecurityQuestions } from "../../services/authApi";
+import Fonts from "../../constants/Fonts";
 
 interface Props {
   navigation: any;
@@ -231,7 +232,7 @@ const styles = StyleSheet.create({
   title: {
     textAlign: "center",
     fontSize: responsiveFontSize(2.2),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     marginBottom: responsiveHeight(2),
   },
 
@@ -239,7 +240,7 @@ const styles = StyleSheet.create({
     marginTop: responsiveHeight(2),
     marginBottom: 6,
     fontSize: responsiveFontSize(1.4),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   inputContainer: {
@@ -270,7 +271,7 @@ const styles = StyleSheet.create({
     marginTop: responsiveHeight(1.5),
     marginBottom: 6,
     fontSize: responsiveFontSize(1.3),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   answerInputContainer: {
@@ -284,7 +285,7 @@ const styles = StyleSheet.create({
 
   answerInput: {
     fontSize: responsiveFontSize(1.5),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     color: "#000",
   },
 
@@ -300,7 +301,7 @@ const styles = StyleSheet.create({
 
   buttonText: {
     fontSize: responsiveFontSize(1.9),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     color: "#fff",
   },
 });

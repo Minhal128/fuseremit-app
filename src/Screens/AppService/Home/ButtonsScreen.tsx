@@ -18,6 +18,7 @@ import { moderateScale } from "react-native-size-matters";
 
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import Fonts from "../../../constants/Fonts";
 
 const ButtonsScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<any>>();
@@ -122,7 +123,7 @@ const styles = StyleSheet.create({
 
   text: {
     fontSize: responsiveFontSize(2),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     color: "#1D2B53",
     textAlign: "center",
     lineHeight: responsiveFontSize(3),

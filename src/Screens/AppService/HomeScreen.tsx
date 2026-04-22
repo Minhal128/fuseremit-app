@@ -31,6 +31,7 @@ import RecentTransactions from "./Home/RecentTransactions";
 import { clearSession, getAccessTokenAsync } from "../../services/session";
 import { fetchCurrentUserStatus } from "../../services/userApi";
 import { useLanguage } from "../../context/LanguageContext";
+import Fonts from "../../constants/Fonts";
 
 interface DashboardIdentityState {
   firstName: string;
@@ -263,13 +264,13 @@ const styles = StyleSheet.create({
   balanceLabel: {
     color: "#FFFFFF",
     fontSize: responsiveFontSize(2),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   balanceAmount: {
     color: "#FFFFFF",
     fontSize: responsiveFontSize(4),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
   },
 
   identityLoadingRow: {
@@ -282,21 +283,21 @@ const styles = StyleSheet.create({
     color: "#E1E7F0",
     marginLeft: responsiveWidth(2),
     fontSize: responsiveFontSize(1.4),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   identityText: {
     marginTop: responsiveHeight(0.8),
     color: "#DCE8FF",
     fontSize: responsiveFontSize(1.4),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   identityErrorText: {
     marginTop: responsiveHeight(0.4),
     color: "#FFD3D3",
     fontSize: responsiveFontSize(1.2),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     maxWidth: responsiveWidth(58),
   },
 
@@ -350,7 +351,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#FFFFFF",
     fontSize: responsiveFontSize(1.8),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   card: {
@@ -365,7 +366,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     color: "#1F2A50",
     fontSize: responsiveFontSize(1.6),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     marginBottom: responsiveHeight(1),
   },
 
@@ -373,7 +374,7 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: responsiveFontSize(1.5),
     marginBottom: responsiveHeight(1),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   bulletRow: {
@@ -389,6 +390,6 @@ const styles = StyleSheet.create({
     flex: 1,
     color: "#FFFFFF",
     fontSize: responsiveFontSize(1.3),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 });

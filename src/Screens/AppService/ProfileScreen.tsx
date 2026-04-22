@@ -34,13 +34,16 @@ import {
   getAccessTokenAsync,
   getSessionUser,
 } from "../../services/session";
-import { fetchCurrentUserStatus } from "../../services/userApi";
+import { fetchCurrentUserStatus, uploadProfilePicture } from "../../services/userApi";
 import { useLanguage } from "../../context/LanguageContext";
+import Fonts from "../../constants/Fonts";
+import * as ImagePicker from "expo-image-picker";
 
 interface ProfileIdentity {
   firstName: string;
   lastName: string;
   email: string;
+  profilePicture?: string;
 }
 
 type RootStackParamList = {
@@ -60,8 +63,10 @@ const ProfileScreen: React.FC = () => {
     firstName: sessionUser?.firstName ?? "FuseRemit",
     lastName: sessionUser?.lastName ?? "User",
     email: sessionUser?.email ?? "",
+    profilePicture: sessionUser?.profilePicture,
   });
   const [isLoadingIdentity, setIsLoadingIdentity] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -100,6 +105,7 @@ const ProfileScreen: React.FC = () => {
         firstName: me.firstName?.trim() || "FuseRemit",
         lastName: me.lastName?.trim() || "User",
         email: me.email,
+        profilePicture: me.profilePicture,
       });
     } catch (error) {
       const message =
@@ -119,6 +125,43 @@ const ProfileScreen: React.FC = () => {
       setIsLoadingIdentity(false);
     }
   }, [resetToLogin]);
+
+  const handleProfilePicturePress = useCallback(async () => {
+    try {
+      // Permission request
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        setErrorMessage("Permission to access gallery was denied.");
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled) {
+        setIsUploading(true);
+        setErrorMessage("");
+
+        const accessToken = await getAccessTokenAsync();
+        if (!accessToken) throw new Error("No access token found.");
+
+        const res = await uploadProfilePicture(accessToken, result.assets[0].uri);
+        
+        setIdentity(prev => ({
+          ...prev,
+          profilePicture: res.profilePicture,
+        }));
+      }
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Failed to upload image.");
+    } finally {
+      setIsUploading(false);
+    }
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -168,10 +211,27 @@ const ProfileScreen: React.FC = () => {
             <View style={styles.headerContent}>
               <Text style={styles.headerTitle}>{t("profile.title")}</Text>
 
-              <Image
-                source={require("../../../assets/profileimg.png")}
-                style={styles.profileImage}
-              />
+              <TouchableOpacity 
+                style={styles.profileImageContainer} 
+                onPress={handleProfilePicturePress}
+                disabled={isUploading}
+              >
+                <Image
+                  source={
+                    identity.profilePicture 
+                      ? { uri: identity.profilePicture } 
+                      : require("../../../assets/profileimg.png")
+                  }
+                  style={styles.profileImage}
+                />
+                <View style={styles.editBadge}>
+                  {isUploading ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Feather name="camera" size={moderateScale(14)} color="#fff" />
+                  )}
+                </View>
+              </TouchableOpacity>
 
               {isLoadingIdentity ? (
                 <View style={styles.loadingWrap}>
@@ -275,7 +335,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     color: "#FFFFFF",
     fontSize: responsiveFontSize(2.2),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     marginBottom: responsiveHeight(2),
   },
 
@@ -284,6 +344,25 @@ const styles = StyleSheet.create({
     height: responsiveWidth(25),
     borderRadius: responsiveWidth(20),
     marginBottom: responsiveHeight(1.5),
+  },
+  
+  profileImageContainer: {
+    position: 'relative',
+    marginBottom: responsiveHeight(1.5),
+  },
+
+  editBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: '#1F2A50',
+    width: moderateScale(28),
+    height: moderateScale(28),
+    borderRadius: moderateScale(14),
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#fff',
   },
 
   loadingWrap: {
@@ -295,13 +374,13 @@ const styles = StyleSheet.create({
     marginTop: responsiveHeight(0.7),
     color: "#E1E6EF",
     fontSize: responsiveFontSize(1.4),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   name: {
     color: "#FFFFFF",
     fontSize: responsiveFontSize(2.4),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
   },
 
   email: {
@@ -314,7 +393,7 @@ const styles = StyleSheet.create({
     marginTop: responsiveHeight(0.7),
     color: "#FFD3D3",
     fontSize: responsiveFontSize(1.2),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     textAlign: "center",
     paddingHorizontal: responsiveWidth(10),
   },
@@ -332,7 +411,7 @@ const styles = StyleSheet.create({
   inviteTitle: {
     color: "#FFFFFF",
     fontSize: responsiveFontSize(2),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     marginBottom: responsiveHeight(0.5),
   },
 
@@ -384,7 +463,7 @@ const styles = StyleSheet.create({
 
   menuText: {
     fontSize: responsiveFontSize(1.9),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     color: "#1F2A50",
   },
 
@@ -401,7 +480,7 @@ const styles = StyleSheet.create({
   logoutText: {
     color: "#FB002E",
     fontSize: responsiveFontSize(2),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
   },
 
   logoutImage: {

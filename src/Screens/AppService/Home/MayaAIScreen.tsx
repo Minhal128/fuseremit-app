@@ -25,6 +25,7 @@ import {
 import { moderateScale } from "react-native-size-matters";
 import { Ionicons, FontAwesome, Entypo } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import Fonts from "../../../constants/Fonts";
 
 const MayaAIScreen: React.FC = () => {
   const [message, setMessage] = useState("");
@@ -166,7 +167,7 @@ const styles = StyleSheet.create({
   askText: {
     color: "#FFFFFF",
     fontSize: responsiveFontSize(2.5),
-    fontFamily: "KronaOne-Regular",
+    fontFamily: Fonts.branding,
     marginBottom: responsiveHeight(1),
     marginTop: responsiveHeight(1.2),
   },
@@ -174,7 +175,7 @@ const styles = StyleSheet.create({
   description: {
     color: "#FFFFFF",
     fontSize: responsiveFontSize(2),
-    fontFamily: "KronaOne-Regular",
+    fontFamily: Fonts.branding,
   },
 
   cardContainer: {
@@ -194,14 +195,14 @@ const styles = StyleSheet.create({
 
   cardTitle: {
     fontSize: responsiveFontSize(2),
-    fontFamily: "Manrope-Bold",
+    fontFamily: Fonts.bold,
     color: "#000000",
     marginBottom: responsiveHeight(0.5),
   },
 
   cardSub: {
     fontSize: responsiveFontSize(1.6),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     color: "#000000",
   },
 
@@ -234,7 +235,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: responsiveFontSize(1.7),
-    fontFamily: "Manrope-SemiBold",
+    fontFamily: Fonts.semiBold,
     color: "#000",
   },
 
