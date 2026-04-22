@@ -28,7 +28,7 @@ interface Props {
 }
 
 const LoginScreen = ({ navigation }: Props) => {
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [secureEntry, setSecureEntry] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -43,9 +43,11 @@ const LoginScreen = ({ navigation }: Props) => {
     checkBiometric();
   }, []);
 
-  const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier.trim());
+  const isValidPhone = /^\+?\d{10,20}$/.test(identifier.trim());
+  const isIdentifierValid = isValidEmail || isValidPhone;
   const isPasswordFilled = password.length >= 8;
-  const isFormValid = isValidEmail && isPasswordFilled;
+  const isFormValid = isIdentifierValid && isPasswordFilled;
 
   const handleContinue = async () => {
     if (!isFormValid || isSubmitting) return;
@@ -54,10 +56,11 @@ const LoginScreen = ({ navigation }: Props) => {
       setErrorMessage("");
       setIsSubmitting(true);
 
-      const data = await requestEmailLoginOtp({
-        email: email.trim().toLowerCase(),
-        password,
-      });
+      const payload = isValidEmail 
+        ? { email: identifier.trim().toLowerCase(), password } 
+        : { phoneNumber: identifier.trim(), password };
+
+      const data = await requestEmailLoginOtp(payload);
 
       if (data.accessToken && data.user) {
         // Direct login if 2FA is disabled
@@ -76,7 +79,7 @@ const LoginScreen = ({ navigation }: Props) => {
         // 2FA flow
         navigation.navigate("PhoneNumberVerify", {
           challengeId: data.challengeId,
-          email: email.trim().toLowerCase(),
+          identifier: identifier.trim(),
         });
       }
     } catch (error) {
@@ -141,26 +144,26 @@ const LoginScreen = ({ navigation }: Props) => {
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.label}>Email Address</Text>
+        <Text style={styles.label}>Email or Phone Number</Text>
 
         <View
           style={[
             styles.inputContainer,
-            !isValidEmail && styles.inputError,
-            isValidEmail && styles.inputSuccess,
+            !isIdentifierValid && identifier.length > 0 && styles.inputError,
+            isIdentifierValid && styles.inputSuccess,
           ]}
         >
-          <Feather name="mail" size={20} color="#777" style={styles.inputIcon} />
+          <Feather name={isValidPhone ? "phone" : "mail"} size={20} color="#777" style={styles.inputIcon} />
           <TextInput
             style={styles.input}
-            placeholder="Enter your email"
-            keyboardType="email-address"
+            placeholder="Enter email or phone number"
+            keyboardType="default"
             autoCapitalize="none"
-            value={email}
-            onChangeText={setEmail}
+            value={identifier}
+            onChangeText={setIdentifier}
           />
 
-          {isValidEmail && <Feather name="check" size={20} color="#1DB954" />}
+          {isIdentifierValid && <Feather name="check" size={20} color="#1DB954" />}
         </View>
 
         <Text style={styles.label}>Password</Text>
@@ -246,10 +249,9 @@ const styles = StyleSheet.create({
   },
 
   logo: {
-    width: responsiveWidth(58),
-    height: responsiveHeight(8),
+    height: responsiveHeight(10),
     alignSelf: "center",
-    marginBottom: responsiveHeight(3),
+    marginBottom: responsiveHeight(5),
   },
 
   title: {
@@ -300,7 +302,8 @@ const styles = StyleSheet.create({
   },
 
   inputSuccess: {
-    borderWidth: 0,
+    borderWidth: 1.2,
+    borderColor: "#1DB954",
     backgroundColor: "#1e1e1e0c",
   },
 

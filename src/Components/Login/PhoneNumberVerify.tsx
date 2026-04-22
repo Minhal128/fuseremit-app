@@ -44,7 +44,7 @@ const PhoneNumberVerify = ({ navigation, route }: Props) => {
   const [errorMessage, setErrorMessage] = useState("");
 
   const challengeId: string | undefined = route?.params?.challengeId;
-  const email: string = route?.params?.email || "";
+  const identifier: string = route?.params?.identifier || route?.params?.email || "";
   const purpose: string = route?.params?.purpose || "login";
 
   const inputs = useRef<(TextInput | null)[]>([]);
@@ -192,12 +192,18 @@ const PhoneNumberVerify = ({ navigation, route }: Props) => {
     })();
   };
 
-  const maskedEmail = (() => {
-    if (!email.includes("@")) return email || "your email";
-    const [name, domain] = email.split("@");
-    const safeName =
-      name.length <= 2 ? `${name[0] || "*"}*` : `${name.slice(0, 2)}***`;
-    return `${safeName}@${domain}`;
+  const maskedIdentifier = (() => {
+    if (identifier.includes("@")) {
+      const [name, domain] = identifier.split("@");
+      const safeName =
+        name.length <= 2 ? `${name[0] || "*"}*` : `${name.slice(0, 2)}***`;
+      return `${safeName}@${domain}`;
+    }
+    // Phone number masking: +1234567890 -> ******7890
+    if (identifier.length > 4) {
+      return identifier.replace(/.(?=.{4})/g, "*");
+    }
+    return identifier || "your contact info";
   })();
 
   const formatTime = () => {
@@ -228,9 +234,9 @@ const PhoneNumberVerify = ({ navigation, route }: Props) => {
           <View style={{ width: moderateScale(26) }} />
         </View>
 
-        <Text style={styles.title}>Verify Your Email</Text>
+        <Text style={styles.title}>Verify Your Account</Text>
         <Text style={styles.subtitle}>
-          Please enter the 6-digit code we sent to {maskedEmail}.
+          Please enter the 6-digit code we sent to {maskedIdentifier}.
         </Text>
 
         <View style={styles.otpRow}>

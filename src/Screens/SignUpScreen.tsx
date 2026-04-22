@@ -36,6 +36,7 @@ const SignUpScreen = ({ navigation }: Props) => {
   const [first, setFirst] = useState("");
   const [last, setLast] = useState("");
   const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [secureEntry, setSecureEntry] = useState(true);
 
@@ -60,6 +61,7 @@ const SignUpScreen = ({ navigation }: Props) => {
     first.trim() &&
     last.trim() &&
     isValidEmail &&
+    phoneNumber.trim().length >= 10 &&
     isValidPassword &&
     gender &&
     date &&
@@ -133,6 +135,7 @@ const SignUpScreen = ({ navigation }: Props) => {
           firstName: first.trim(),
           lastName: last.trim(),
           email: normalizedEmail,
+          phoneNumber: phoneNumber.trim(),
           password,
           gender: gender as "Male" | "Female" | "Other",
           dateOfBirth,
@@ -146,15 +149,21 @@ const SignUpScreen = ({ navigation }: Props) => {
           }
           navigation.navigate("PhoneNumberVerify", {
             challengeId: registration.challengeId,
-            email: normalizedEmail,
+            identifier: normalizedPhone || normalizedEmail,
           });
           return;
         }
 
-        if (!registration.persistenceVerified) {
-          throw new Error("Signup persistence check failed");
+        if (registration.challengeId) {
+          // Navigate to OTP verification using the challengeId from registration
+          navigation.navigate("PhoneNumberVerify", {
+            challengeId: registration.challengeId,
+            identifier: phoneNumber.trim() || normalizedEmail,
+          });
+          return;
         }
 
+        // Fallback (should not happen with updated backend)
         const otp = await requestEmailLoginOtp({
           email: normalizedEmail,
           password,
@@ -171,7 +180,7 @@ const SignUpScreen = ({ navigation }: Props) => {
           // 2FA enabled → navigate to OTP verification
           navigation.navigate("PhoneNumberVerify", {
             challengeId: otp.challengeId,
-            email: normalizedEmail,
+            identifier: normalizedEmail,
           });
         }
       } catch (error) {
@@ -264,6 +273,15 @@ const SignUpScreen = ({ navigation }: Props) => {
           setValue={setEmail}
           borderColor={borderColor(email)}
           icon="mail"
+        />
+        <Input
+          label="Phone Number"
+          placeholder="e.g. +1234567890"
+          value={phoneNumber}
+          setValue={setPhoneNumber}
+          borderColor={borderColor(phoneNumber)}
+          icon="phone"
+          keyboardType="phone-pad"
         />
 
         <Text style={styles.label}>Password</Text>
@@ -404,7 +422,7 @@ const SignUpScreen = ({ navigation }: Props) => {
 
 export default SignUpScreen;
 
-const Input = ({ label, placeholder, value, setValue, borderColor, icon }: any) => (
+const Input = ({ label, placeholder, value, setValue, borderColor, icon, keyboardType }: any) => (
   <>
     <Text style={styles.label}>{label}</Text>
     <View style={[styles.inputContainer, { borderColor }]}>
@@ -421,6 +439,7 @@ const Input = ({ label, placeholder, value, setValue, borderColor, icon }: any) 
         placeholder={placeholder}
         value={value}
         onChangeText={setValue}
+        keyboardType={keyboardType || "default"}
       />
     </View>
   </>
@@ -439,7 +458,7 @@ const styles = StyleSheet.create({
     marginBottom: responsiveHeight(2),
   },
   backBtn: { position: "absolute", left: 0 },
-  logo: { width: responsiveWidth(50), height: responsiveHeight(5) },
+  logo: { width: responsiveWidth(55), height: responsiveHeight(10), alignSelf: "center" },
   title: { fontSize: responsiveFontSize(2.5), fontFamily: Fonts.semiBold },
   subtitle: {
     fontSize: responsiveFontSize(1.4),

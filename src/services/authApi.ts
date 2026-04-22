@@ -4,6 +4,7 @@ export interface RegisterRequest {
   firstName: string;
   lastName: string;
   email: string;
+  phoneNumber: string;
   password: string;
   dateOfBirth?: string;
   gender?: "Male" | "Female" | "Other";
@@ -14,6 +15,7 @@ export interface RegisterResponse {
   firstName?: string;
   lastName?: string;
   email?: string;
+  phoneNumber?: string;
   accountTier?: "Classic" | "Premium";
   persistenceVerified: boolean;
   challengeId?: string;
@@ -21,8 +23,9 @@ export interface RegisterResponse {
 }
 
 export interface LoginOtpRequest {
-  email: string;
-  password: string;
+  email?: string;
+  phoneNumber?: string;
+  password?: string;
 }
 
 export interface LoginOtpResponse {
